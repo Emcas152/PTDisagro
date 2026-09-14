@@ -14,6 +14,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Put,
   Req,
   Res,
   UseGuards,
@@ -29,6 +30,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator'
 import { AuthGuard } from '../../common/guards/auth.guard'
 import { AuthService } from './auth.service'
 import { LoginDto } from './dto/login.dto'
+import { UpdateProfileDto } from './dto/update-profile.dto'
 
 @ApiTags('Autenticación y Sesiones')
 @Controller('auth')
@@ -123,5 +125,23 @@ export class AuthController {
   })
   async me(@CurrentUser() user: any) {
     return { user }
+  }
+
+  /**
+   * Actualiza el perfil del usuario autenticado.
+   */
+  @Put('me')
+  @UseGuards(AuthGuard)
+  @ApiCookieAuth()
+  @ApiOperation({
+    summary: 'Actualizar perfil de usuario',
+    description: 'Actualiza el nombre, correo y/o contraseña del administrador autenticado.',
+  })
+  async updateMe(
+    @CurrentUser() currentUser: any,
+    @Body() dto: UpdateProfileDto,
+  ) {
+    const user = await this.authService.updateProfile(currentUser.id, dto)
+    return { message: 'Perfil actualizado exitosamente', user }
   }
 }

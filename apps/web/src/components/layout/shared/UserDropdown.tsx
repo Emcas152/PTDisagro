@@ -80,9 +80,19 @@ const UserDropdown = () => {
   }
 
   const handleLogout = async (event: MouseEvent<HTMLButtonElement>) => {
-    handleDropdownClose(event as any)
-    await api.logout()
-    router.push('/')
+    event.preventDefault()
+    setOpen(false)
+    try {
+      await api.logout()
+    } catch (err) {
+      console.error('Error logging out:', err)
+    } finally {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('disagro_token')
+        localStorage.removeItem('disagro_user')
+        window.location.href = '/'
+      }
+    }
   }
 
   return (

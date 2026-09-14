@@ -95,9 +95,19 @@ const VerticalMenu = ({
 
         <MenuSection label='Sesión'>
           <MenuItem
-            onClick={async () => {
-              await api.logout()
-              router.push('/')
+            onClick={async (e) => {
+              e?.preventDefault?.()
+              try {
+                await api.logout()
+              } catch (err) {
+                console.error('Error during logout:', err)
+              } finally {
+                if (typeof window !== 'undefined') {
+                  localStorage.removeItem('disagro_token')
+                  localStorage.removeItem('disagro_user')
+                  window.location.href = '/'
+                }
+              }
             }}
             icon={<i className='ri-logout-box-r-line' />}
           >

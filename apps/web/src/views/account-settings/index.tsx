@@ -11,7 +11,11 @@ import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
 
-const AccountSettings = ({ tabContentList }: { tabContentList: { [key: string]: ReactElement } }) => {
+const AccountSettings = ({
+  tabContentList,
+}: {
+  tabContentList: { [key: string]: ReactElement }
+}) => {
   // States
   const [activeTab, setActiveTab] = useState('account')
 
@@ -24,14 +28,18 @@ const AccountSettings = ({ tabContentList }: { tabContentList: { [key: string]: 
       <Grid container spacing={6}>
         <Grid item xs={12}>
           <TabList onChange={handleChange} variant='scrollable'>
-            <Tab label='Account' icon={<i className='ri-user-3-line' />} iconPosition='start' value='account' />
             <Tab
-              label='Notifications'
+              label='Perfil del Administrador'
+              icon={<i className='ri-user-3-line' />}
+              iconPosition='start'
+              value='account'
+            />
+            <Tab
+              label='Notificaciones y Alertas'
               icon={<i className='ri-notification-3-line' />}
               iconPosition='start'
               value='notifications'
             />
-            <Tab label='Connections' icon={<i className='ri-link' />} iconPosition='start' value='connections' />
           </TabList>
         </Grid>
         <Grid item xs={12}>

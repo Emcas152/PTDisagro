@@ -99,4 +99,46 @@ export class AuthService {
       data: { revokedAt: new Date() },
     })
   }
+
+  /**
+   * Actualiza los datos del perfil del usuario en sesión.
+   */
+  async updateProfile(
+    userId: string,
+    data: { name?: string; email?: string; password?: string },
+  ) {
+    const updateData: any = {}
+
+    if (data.name) {
+      updateData.name = data.name.trim()
+    }
+
+    if (data.email) {
+      const email = data.email.toLowerCase().trim()
+      const existing = await this.prisma.user.findFirst({
+        where: { email, NOT: { id: userId } },
+      })
+      if (existing) {
+        throw new UnauthorizedException('El correo ya se encuentra registrado por otro usuario')
+      }
+      updateData.email = email
+    }
+
+    if (data.password) {
+      updateData.passwordHash = await bcrypt.hash(data.password, 10)
+    }
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: updateData,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+      },
+    })
+
+    return updatedUser
+  }
 }

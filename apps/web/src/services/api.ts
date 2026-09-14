@@ -41,8 +41,10 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   const url = `${API_BASE_URL}${endpoint}`
   const headers = new Headers(options.headers || {})
 
-  if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
-    headers.set('Content-Type', 'application/json')
+  if (options.body && !(options.body instanceof FormData)) {
+    if (!headers.has('Content-Type')) {
+      headers.set('Content-Type', 'application/json')
+    }
   }
 
   // Si existe un token de sesión en localStorage, adjuntarlo como header Bearer
@@ -180,6 +182,7 @@ export const api = {
     try {
       await request<any>('/auth/logout', {
         method: 'POST',
+        body: JSON.stringify({}),
       })
     } finally {
       if (typeof window !== 'undefined') {
@@ -191,6 +194,19 @@ export const api = {
 
   async getMe() {
     return request<any>('/auth/me')
+  },
+
+  async updateProfile(data: { name?: string; email?: string; password?: string }) {
+    const res = await request<any>('/auth/me', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+
+    if (typeof window !== 'undefined' && res?.user) {
+      localStorage.setItem('disagro_user', JSON.stringify(res.user))
+    }
+
+    return res
   },
 
   // ==========================================
