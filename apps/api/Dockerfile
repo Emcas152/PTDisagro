@@ -9,7 +9,7 @@ RUN npm install -g pnpm@10.30.3
 RUN apk add --no-cache libc6-compat openssl
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY packages/contracts/package.json ./packages/contracts/
+COPY packages/ ./packages/
 COPY apps/api/package.json ./apps/api/
 COPY apps/api/prisma ./apps/api/prisma
 

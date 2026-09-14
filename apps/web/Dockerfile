@@ -9,10 +9,10 @@ RUN npm install -g pnpm@10.30.3
 RUN apk add --no-cache libc6-compat
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY packages/contracts/package.json ./packages/contracts/
+COPY packages/ ./packages/
 COPY apps/web/package.json ./apps/web/
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --ignore-scripts --frozen-lockfile
 
 # STAGE 2: Builder
 FROM node:20-alpine AS builder
@@ -29,7 +29,8 @@ COPY apps/web ./apps/web
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
-# Compilar contratos primero y luego el frontend
+# Compilar iconos, contratos y luego el frontend
+RUN pnpm --filter @ptdisagro/web build:icons
 RUN pnpm --filter @ptdisagro/contracts build
 RUN pnpm --filter @ptdisagro/web build
 
