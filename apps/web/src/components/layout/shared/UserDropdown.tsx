@@ -1,7 +1,7 @@
 'use client'
 
 // React Imports
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import type { MouseEvent } from 'react'
 
 // Next Imports
@@ -21,6 +21,9 @@ import Divider from '@mui/material/Divider'
 import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
 
+// Service Imports
+import { api } from '@/services/api'
+
 // Styled component for badge content
 const BadgeContentSpan = styled('span')({
   width: 8,
@@ -28,12 +31,17 @@ const BadgeContentSpan = styled('span')({
   borderRadius: '50%',
   cursor: 'pointer',
   backgroundColor: 'var(--mui-palette-success-main)',
-  boxShadow: '0 0 0 2px var(--mui-palette-background-paper)'
+  boxShadow: '0 0 0 2px var(--mui-palette-background-paper)',
 })
 
 const UserDropdown = () => {
   // States
   const [open, setOpen] = useState(false)
+  const [user, setUser] = useState<{ name?: string; email?: string; role?: string }>({
+    name: 'Super Administrador',
+    email: 'admin@disagro.com',
+    role: 'SUPERADMIN',
+  })
 
   // Refs
   const anchorRef = useRef<HTMLDivElement>(null)
@@ -41,11 +49,25 @@ const UserDropdown = () => {
   // Hooks
   const router = useRouter()
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('disagro_user')
+        if (cached) {
+          setUser(JSON.parse(cached))
+        }
+      } catch {}
+    }
+  }, [])
+
   const handleDropdownOpen = () => {
     !open ? setOpen(true) : setOpen(false)
   }
 
-  const handleDropdownClose = (event?: MouseEvent<HTMLLIElement> | (MouseEvent | TouchEvent), url?: string) => {
+  const handleDropdownClose = (
+    event?: MouseEvent<HTMLLIElement> | (MouseEvent | TouchEvent),
+    url?: string,
+  ) => {
     if (url) {
       router.push(url)
     }
@@ -55,6 +77,12 @@ const UserDropdown = () => {
     }
 
     setOpen(false)
+  }
+
+  const handleLogout = async (event: MouseEvent<HTMLButtonElement>) => {
+    handleDropdownClose(event as any)
+    await api.logout()
+    router.push('/')
   }
 
   return (
@@ -68,7 +96,7 @@ const UserDropdown = () => {
       >
         <Avatar
           ref={anchorRef}
-          alt='John Doe'
+          alt={user.name || 'Admin'}
           src='/images/avatars/1.png'
           onClick={handleDropdownOpen}
           className='cursor-pointer bs-[38px] is-[38px]'
@@ -86,38 +114,33 @@ const UserDropdown = () => {
           <Fade
             {...TransitionProps}
             style={{
-              transformOrigin: placement === 'bottom-end' ? 'right top' : 'left top'
+              transformOrigin: placement === 'bottom-end' ? 'right top' : 'left top',
             }}
           >
-            <Paper className='shadow-lg'>
-              <ClickAwayListener onClickAway={e => handleDropdownClose(e as MouseEvent | TouchEvent)}>
+            <Paper className='shadow-lg border border-borderColor bg-backgroundPaper'>
+              <ClickAwayListener onClickAway={(e) => handleDropdownClose(e as MouseEvent | TouchEvent)}>
                 <MenuList>
                   <div className='flex items-center plb-2 pli-4 gap-2' tabIndex={-1}>
-                    <Avatar alt='John Doe' src='/images/avatars/1.png' />
-                    <div className='flex items-start flex-col'>
-                      <Typography className='font-medium' color='text.primary'>
-                        John Doe
+                    <Avatar alt={user.name || 'Admin'} src='/images/avatars/1.png' />
+                    <div className='flex items-start flex-col overflow-hidden'>
+                      <Typography className='font-semibold text-sm truncate' color='text.primary'>
+                        {user.name || 'Administrador'}
                       </Typography>
-                      <Typography variant='caption'>Admin</Typography>
+                      <Typography variant='caption' color='text.secondary'>
+                        {user.role || 'SUPERADMIN'}
+                      </Typography>
                     </div>
                   </div>
                   <Divider className='mlb-1' />
-                  <MenuItem className='gap-3' onClick={e => handleDropdownClose(e)}>
-                    <i className='ri-user-3-line' />
-                    <Typography color='text.primary'>My Profile</Typography>
+                  <MenuItem className='gap-3' onClick={(e) => handleDropdownClose(e, '/dashboard')}>
+                    <i className='ri-dashboard-line' />
+                    <Typography color='text.primary'>Dashboard General</Typography>
                   </MenuItem>
-                  <MenuItem className='gap-3' onClick={e => handleDropdownClose(e)}>
+                  <MenuItem className='gap-3' onClick={(e) => handleDropdownClose(e, '/account-settings')}>
                     <i className='ri-settings-4-line' />
-                    <Typography color='text.primary'>Settings</Typography>
+                    <Typography color='text.primary'>Configuraciones</Typography>
                   </MenuItem>
-                  <MenuItem className='gap-3' onClick={e => handleDropdownClose(e)}>
-                    <i className='ri-money-dollar-circle-line' />
-                    <Typography color='text.primary'>Pricing</Typography>
-                  </MenuItem>
-                  <MenuItem className='gap-3' onClick={e => handleDropdownClose(e)}>
-                    <i className='ri-question-line' />
-                    <Typography color='text.primary'>FAQ</Typography>
-                  </MenuItem>
+                  <Divider className='mlb-1' />
                   <div className='flex items-center plb-2 pli-4'>
                     <Button
                       fullWidth
@@ -125,10 +148,10 @@ const UserDropdown = () => {
                       color='error'
                       size='small'
                       endIcon={<i className='ri-logout-box-r-line' />}
-                      onClick={e => handleDropdownClose(e, '/login')}
+                      onClick={handleLogout}
                       sx={{ '& .MuiButton-endIcon': { marginInlineStart: 1.5 } }}
                     >
-                      Logout
+                      Cerrar Sesión
                     </Button>
                   </div>
                 </MenuList>

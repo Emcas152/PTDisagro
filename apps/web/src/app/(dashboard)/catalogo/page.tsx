@@ -99,10 +99,10 @@ export default function CatalogoPage() {
     <div className='space-y-6'>
       <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4'>
         <div>
-          <h1 className='text-2xl font-bold text-gray-900'>
+          <h1 className='text-2xl font-bold text-textPrimary'>
             Gestión de Catálogo Comercial
           </h1>
-          <p className='text-sm text-gray-500'>
+          <p className='text-sm text-textSecondary'>
             Administración de servicios tecnológicos y productos para la Feria Disagro.
           </p>
         </div>
@@ -122,7 +122,7 @@ export default function CatalogoPage() {
         </Button>
       </div>
 
-      <Card className='shadow-sm rounded-xl border border-gray-200'>
+      <Card className='shadow-sm rounded-xl border border-borderColor bg-backgroundPaper'>
         <CardHeader
           title={
             <div className='flex flex-col sm:flex-row gap-3 items-center justify-between'>
@@ -136,21 +136,21 @@ export default function CatalogoPage() {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position='start'>
-                        <i className='ri-search-line text-gray-400' />
+                        <i className='ri-search-line text-textDisabled' />
                       </InputAdornment>
                     ),
                   }}
                 />
               </div>
 
-              <div className='flex items-center space-x-2 bg-gray-100 p-1 rounded-lg'>
+              <div className='flex items-center space-x-2 bg-actionHover p-1 rounded-lg border border-borderColor'>
                 <button
                   type='button'
                   onClick={() => setFilterType('ALL')}
                   className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
                     filterType === 'ALL'
-                      ? 'bg-white text-gray-900 shadow-sm font-semibold'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-backgroundPaper text-textPrimary shadow-sm font-semibold'
+                      : 'text-textSecondary hover:text-textPrimary'
                   }`}
                 >
                   Todos
@@ -160,8 +160,8 @@ export default function CatalogoPage() {
                   onClick={() => setFilterType('SERVICE')}
                   className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
                     filterType === 'SERVICE'
-                      ? 'bg-white text-[#2e7d32] shadow-sm font-semibold'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-backgroundPaper text-emerald-500 shadow-sm font-semibold'
+                      : 'text-textSecondary hover:text-textPrimary'
                   }`}
                 >
                   Servicios
@@ -171,8 +171,8 @@ export default function CatalogoPage() {
                   onClick={() => setFilterType('PRODUCT')}
                   className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
                     filterType === 'PRODUCT'
-                      ? 'bg-white text-blue-700 shadow-sm font-semibold'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-backgroundPaper text-blue-500 shadow-sm font-semibold'
+                      : 'text-textSecondary hover:text-textPrimary'
                   }`}
                 >
                   Productos
@@ -186,12 +186,12 @@ export default function CatalogoPage() {
           {loading ? (
             <div className='text-center py-16'>
               <CircularProgress color='success' />
-              <p className='text-xs text-gray-500 mt-2'>Cargando catálogo...</p>
+              <p className='text-xs text-textSecondary mt-2'>Cargando catálogo...</p>
             </div>
           ) : (
             <div className='overflow-x-auto'>
               <table className='w-full text-xs text-left'>
-                <thead className='bg-gray-50 text-gray-600 font-semibold border-y border-gray-200'>
+                <thead className='bg-actionHover text-textSecondary font-semibold border-y border-borderColor'>
                   <tr>
                     <th className='p-3.5'>Nombre</th>
                     <th className='p-3.5'>Tipo</th>
@@ -201,13 +201,13 @@ export default function CatalogoPage() {
                     <th className='p-3.5 text-center'>Habilitar</th>
                   </tr>
                 </thead>
-                <tbody className='divide-y divide-gray-100'>
+                <tbody className='divide-y divide-borderColor'>
                   {items.map((item) => (
-                    <tr key={item.id} className='hover:bg-gray-50/70 transition-colors'>
+                    <tr key={item.id} className='hover:bg-actionHover transition-colors'>
                       <td className='p-3.5'>
-                        <div className='font-semibold text-gray-900'>{item.name}</div>
+                        <div className='font-semibold text-textPrimary'>{item.name}</div>
                         {item.description && (
-                          <div className='text-[10px] text-gray-500 line-clamp-1'>
+                          <div className='text-[10px] text-textSecondary line-clamp-1'>
                             {item.description}
                           </div>
                         )}
@@ -216,17 +216,17 @@ export default function CatalogoPage() {
                         <span
                           className={`text-[9px] uppercase font-bold px-2 py-0.5 rounded ${
                             item.type === 'SERVICE'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : 'bg-blue-100 text-blue-800'
+                              ? 'bg-emerald-500/15 text-emerald-500'
+                              : 'bg-blue-500/15 text-blue-500'
                           }`}
                         >
                           {item.type === 'SERVICE' ? 'Servicio' : 'Producto'}
                         </span>
                       </td>
-                      <td className='p-3.5 text-gray-600'>
+                      <td className='p-3.5 text-textSecondary'>
                         {item.category || 'General'}
                       </td>
-                      <td className='p-3.5 text-right font-bold text-gray-900'>
+                      <td className='p-3.5 text-right font-bold text-textPrimary'>
                         Q. {Number(item.price).toFixed(2)}
                       </td>
                       <td className='p-3.5 text-center'>
@@ -250,7 +250,7 @@ export default function CatalogoPage() {
 
                   {items.length === 0 && (
                     <tr>
-                      <td colSpan={6} className='text-center py-12 text-gray-400'>
+                      <td colSpan={6} className='text-center py-12 text-textDisabled'>
                         No hay ítems registrados en esta vista.
                       </td>
                     </tr>
@@ -268,7 +268,7 @@ export default function CatalogoPage() {
         onClose={() => setOpenModal(false)}
         maxWidth='xs'
         fullWidth
-        PaperProps={{ className: 'rounded-2xl' }}
+        PaperProps={{ className: 'rounded-2xl border border-borderColor bg-backgroundPaper' }}
       >
         <DialogTitle className='bg-[#24292e] text-white p-4 font-bold text-base'>
           Agregar Ítem al Catálogo
@@ -329,7 +329,7 @@ export default function CatalogoPage() {
           />
         </DialogContent>
 
-        <DialogActions className='p-4 border-t border-gray-200'>
+        <DialogActions className='p-4 border-t border-borderColor'>
           <Button onClick={() => setOpenModal(false)} sx={{ textTransform: 'none' }}>
             Cancelar
           </Button>

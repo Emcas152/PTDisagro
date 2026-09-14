@@ -67,10 +67,10 @@ export default function RegistrosPage() {
       {/* Encabezado con Botón de Exportar */}
       <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4'>
         <div>
-          <h1 className='text-2xl font-bold text-gray-900'>
+          <h1 className='text-2xl font-bold text-textPrimary'>
             Participantes y Confirmaciones
           </h1>
-          <p className='text-sm text-gray-500'>
+          <p className='text-sm text-textSecondary'>
             Gestión de clientes registrados, selección de promociones y exportación de datos.
           </p>
         </div>
@@ -91,7 +91,7 @@ export default function RegistrosPage() {
       </div>
 
       {/* Tarjeta de Filtros y Tabla */}
-      <Card className='shadow-sm rounded-xl border border-gray-200'>
+      <Card className='shadow-sm rounded-xl border border-borderColor bg-backgroundPaper'>
         <CardHeader
           title={
             <div className='flex flex-col sm:flex-row gap-3 items-center justify-between'>
@@ -105,7 +105,7 @@ export default function RegistrosPage() {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position='start'>
-                        <i className='ri-search-line text-gray-400' />
+                        <i className='ri-search-line text-textDisabled' />
                       </InputAdornment>
                     ),
                   }}
@@ -135,12 +135,12 @@ export default function RegistrosPage() {
           {loading ? (
             <div className='text-center py-16'>
               <CircularProgress color='success' />
-              <p className='text-xs text-gray-500 mt-2'>Cargando registros...</p>
+              <p className='text-xs text-textSecondary mt-2'>Cargando registros...</p>
             </div>
           ) : (
             <div className='overflow-x-auto'>
               <table className='w-full text-xs text-left'>
-                <thead className='bg-gray-50 text-gray-600 font-semibold border-y border-gray-200'>
+                <thead className='bg-actionHover text-textSecondary font-semibold border-y border-borderColor'>
                   <tr>
                     <th className='p-3.5'>Código</th>
                     <th className='p-3.5'>Cliente</th>
@@ -152,27 +152,27 @@ export default function RegistrosPage() {
                     <th className='p-3.5 text-center'>Acciones</th>
                   </tr>
                 </thead>
-                <tbody className='divide-y divide-gray-100'>
+                <tbody className='divide-y divide-borderColor'>
                   {registrations.map((r) => (
-                    <tr key={r.id} className='hover:bg-gray-50/70 transition-colors'>
-                      <td className='p-3.5 font-mono font-bold text-gray-900'>
+                    <tr key={r.id} className='hover:bg-actionHover transition-colors'>
+                      <td className='p-3.5 font-mono font-bold text-textPrimary'>
                         {r.confirmationCode}
                       </td>
                       <td className='p-3.5'>
-                        <div className='font-semibold text-gray-800'>
+                        <div className='font-semibold text-textPrimary'>
                           {r.customer?.fullName}
                         </div>
                         {r.customer?.company && (
-                          <span className='text-[10px] text-gray-500 block'>
+                          <span className='text-[10px] text-textSecondary block'>
                             {r.customer.company}
                           </span>
                         )}
                       </td>
-                      <td className='p-3.5 text-gray-600'>
+                      <td className='p-3.5 text-textSecondary'>
                         <div>{r.customer?.email}</div>
-                        <div className='text-[10px] text-gray-400'>{r.customer?.phone}</div>
+                        <div className='text-[10px] text-textDisabled'>{r.customer?.phone}</div>
                       </td>
-                      <td className='p-3.5 text-gray-600'>
+                      <td className='p-3.5 text-textSecondary'>
                         {r.customer?.attendanceDate || 'No indicada'}
                       </td>
                       <td className='p-3.5 text-center'>
@@ -183,10 +183,10 @@ export default function RegistrosPage() {
                           sx={{ fontSize: '10px', height: 20 }}
                         />
                       </td>
-                      <td className='p-3.5 text-right font-semibold text-emerald-700'>
+                      <td className='p-3.5 text-right font-semibold text-emerald-500'>
                         Q. {Number(r.totalDiscountAmount).toFixed(2)}
                       </td>
-                      <td className='p-3.5 text-right font-bold text-gray-900'>
+                      <td className='p-3.5 text-right font-bold text-textPrimary'>
                         Q. {Number(r.estimatedTotal).toFixed(2)}
                       </td>
                       <td className='p-3.5 text-center'>
@@ -204,7 +204,7 @@ export default function RegistrosPage() {
 
                   {registrations.length === 0 && (
                     <tr>
-                      <td colSpan={8} className='text-center py-12 text-gray-400'>
+                      <td colSpan={8} className='text-center py-12 text-textDisabled'>
                         No se encontraron registros con los filtros aplicados.
                       </td>
                     </tr>
@@ -236,7 +236,7 @@ export default function RegistrosPage() {
           onClose={() => setModalOpen(false)}
           maxWidth='sm'
           fullWidth
-          PaperProps={{ className: 'rounded-2xl' }}
+          PaperProps={{ className: 'rounded-2xl border border-borderColor bg-backgroundPaper' }}
         >
           <DialogTitle className='bg-[#24292e] text-white p-4 flex justify-between items-center'>
             <span className='font-bold text-sm'>
@@ -252,21 +252,21 @@ export default function RegistrosPage() {
 
           <DialogContent className='p-5 space-y-4 text-xs'>
             {/* Info Participante */}
-            <div className='bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-1'>
+            <div className='bg-actionHover p-3 rounded-lg border border-borderColor space-y-1 text-textPrimary'>
               <div>
                 <strong>Cliente:</strong> {selectedReg.customer?.fullName}
               </div>
-              <div>
+              <div className='text-textSecondary'>
                 <strong>Correo:</strong> {selectedReg.customer?.email} |{' '}
                 <strong>Teléfono:</strong> {selectedReg.customer?.phone}
               </div>
               {selectedReg.customer?.company && (
-                <div>
+                <div className='text-textSecondary'>
                   <strong>Empresa:</strong> {selectedReg.customer.company} (
                   {selectedReg.customer.jobTitle})
                 </div>
               )}
-              <div>
+              <div className='text-textSecondary'>
                 <strong>Fecha Asistencia:</strong>{' '}
                 {selectedReg.customer?.attendanceDate}
               </div>
@@ -274,22 +274,22 @@ export default function RegistrosPage() {
 
             {/* Lista de Ítems */}
             <div>
-              <h4 className='font-bold text-gray-800 mb-2'>
+              <h4 className='font-bold text-textPrimary mb-2'>
                 Ítems Seleccionados ({selectedReg.items?.length || 0})
               </h4>
-              <div className='space-y-1.5 max-h-48 overflow-y-auto border border-gray-100 rounded-lg p-1'>
+              <div className='space-y-1.5 max-h-48 overflow-y-auto border border-borderColor rounded-lg p-1'>
                 {selectedReg.items?.map((item: any) => (
                   <div
                     key={item.id}
-                    className='flex justify-between items-center p-2 rounded bg-gray-50 text-xs'
+                    className='flex justify-between items-center p-2 rounded bg-actionHover text-xs'
                   >
                     <div>
-                      <span className='font-semibold text-gray-800'>
+                      <span className='font-semibold text-textPrimary'>
                         {item.nameSnapshot}
                       </span>{' '}
-                      <span className='text-gray-500'>(x{item.quantity})</span>
+                      <span className='text-textSecondary'>(x{item.quantity})</span>
                     </div>
-                    <span className='font-bold text-gray-800'>
+                    <span className='font-bold text-textPrimary'>
                       Q. {Number(item.lineTotal).toFixed(2)}
                     </span>
                   </div>
@@ -298,27 +298,27 @@ export default function RegistrosPage() {
             </div>
 
             {/* Totales */}
-            <div className='bg-emerald-50/50 p-3 rounded-lg border border-emerald-100 space-y-1 text-xs'>
-              <div className='flex justify-between'>
+            <div className='bg-emerald-500/10 p-3 rounded-lg border border-emerald-500/20 space-y-1 text-xs'>
+              <div className='flex justify-between text-textSecondary'>
                 <span>Subtotal Servicios:</span>
                 <span>Q. {Number(selectedReg.serviceSubtotal).toFixed(2)}</span>
               </div>
-              <div className='flex justify-between'>
+              <div className='flex justify-between text-textSecondary'>
                 <span>Subtotal Productos:</span>
                 <span>Q. {Number(selectedReg.productSubtotal).toFixed(2)}</span>
               </div>
-              <div className='flex justify-between text-emerald-700 font-bold'>
+              <div className='flex justify-between text-emerald-500 font-bold'>
                 <span>Ahorro Total Promocional:</span>
                 <span>Q. {Number(selectedReg.totalDiscountAmount).toFixed(2)}</span>
               </div>
-              <div className='flex justify-between font-black text-gray-900 pt-1 border-t border-emerald-200 text-sm'>
+              <div className='flex justify-between font-black text-textPrimary pt-1 border-t border-emerald-500/30 text-sm'>
                 <span>Total Estimado:</span>
                 <span>Q. {Number(selectedReg.estimatedTotal).toFixed(2)}</span>
               </div>
             </div>
           </DialogContent>
 
-          <DialogActions className='p-4 border-t border-gray-200'>
+          <DialogActions className='p-4 border-t border-borderColor'>
             <Button onClick={() => setModalOpen(false)} sx={{ textTransform: 'none' }}>
               Cerrar
             </Button>

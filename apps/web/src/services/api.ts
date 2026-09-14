@@ -45,6 +45,14 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers.set('Content-Type', 'application/json')
   }
 
+  // Si existe un token de sesión en localStorage, adjuntarlo como header Bearer
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('disagro_token')
+    if (token && !headers.has('Authorization')) {
+      headers.set('Authorization', `Bearer ${token}`)
+    }
+  }
+
   const response = await fetch(url, {
     ...options,
     headers,
@@ -151,16 +159,34 @@ export const api = {
   // AUTENTICACIÓN
   // ==========================================
   async login(credentials: { email: string; password: string }) {
-    return request<any>('/auth/login', {
+    const res = await request<any>('/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     })
+
+    if (typeof window !== 'undefined') {
+      if (res?.token) {
+        localStorage.setItem('disagro_token', res.token)
+      }
+      if (res?.user) {
+        localStorage.setItem('disagro_user', JSON.stringify(res.user))
+      }
+    }
+
+    return res
   },
 
   async logout() {
-    return request<any>('/auth/logout', {
-      method: 'POST',
-    })
+    try {
+      await request<any>('/auth/logout', {
+        method: 'POST',
+      })
+    } finally {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('disagro_token')
+        localStorage.removeItem('disagro_user')
+      }
+    }
   },
 
   async getMe() {

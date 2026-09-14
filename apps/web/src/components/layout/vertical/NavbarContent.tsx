@@ -2,7 +2,6 @@
 import Link from 'next/link'
 
 // MUI Imports
-import IconButton from '@mui/material/IconButton'
 import Chip from '@mui/material/Chip'
 
 // Third-party Imports
@@ -10,7 +9,6 @@ import classnames from 'classnames'
 
 // Component Imports
 import NavToggle from './NavToggle'
-import NavSearch from '@components/layout/shared/search'
 import ModeDropdown from '@components/layout/shared/ModeDropdown'
 import UserDropdown from '@components/layout/shared/UserDropdown'
 
@@ -27,10 +25,9 @@ const NavbarContent = () => {
     >
       <div className='flex items-center gap-2 sm:gap-4'>
         <NavToggle />
-        <NavSearch />
       </div>
       <div className='flex items-center gap-2'>
-        <Link href='/' className='hidden sm:inline-flex'>
+        <Link href='/feria' target='_blank' className='hidden sm:inline-flex'>
           <Chip
             label='Ver Portal Feria'
             size='small'

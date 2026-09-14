@@ -1,3 +1,6 @@
+// Next Imports
+import { useRouter } from 'next/navigation'
+
 // MUI Imports
 import Chip from '@mui/material/Chip'
 import { useTheme } from '@mui/material/styles'
@@ -13,6 +16,7 @@ import { Menu, MenuItem, MenuSection } from '@menu/vertical-menu'
 
 // Hook Imports
 import useVerticalNav from '@menu/hooks/useVerticalNav'
+import { api } from '@/services/api'
 
 // Styled Component Imports
 import StyledVerticalNavExpandIcon from '@menu/styles/vertical/StyledVerticalNavExpandIcon'
@@ -39,6 +43,7 @@ const VerticalMenu = ({
 }) => {
   // Hooks
   const theme = useTheme()
+  const router = useRouter()
   const { isBreakpointReached, transitionDuration } = useVerticalNav()
 
   const ScrollWrapper = isBreakpointReached ? 'div' : PerfectScrollbar
@@ -64,7 +69,7 @@ const VerticalMenu = ({
         menuSectionStyles={menuSectionStyles(theme)}
       >
         <MenuSection label='Feria Disagro 2026'>
-          <MenuItem href='/' icon={<i className='ri-dashboard-line' />}>
+          <MenuItem href='/dashboard' icon={<i className='ri-dashboard-line' />}>
             Dashboard General
           </MenuItem>
           <MenuItem href='/registros' icon={<i className='ri-user-follow-line' />}>
@@ -89,7 +94,13 @@ const VerticalMenu = ({
         </MenuSection>
 
         <MenuSection label='Sesión'>
-          <MenuItem href='/login' icon={<i className='ri-logout-box-r-line' />}>
+          <MenuItem
+            onClick={async () => {
+              await api.logout()
+              router.push('/')
+            }}
+            icon={<i className='ri-logout-box-r-line' />}
+          >
             Cerrar Sesión
           </MenuItem>
         </MenuSection>

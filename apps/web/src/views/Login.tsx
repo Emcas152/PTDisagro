@@ -1,7 +1,7 @@
 'use client'
 
 // React Imports
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { FormEvent } from 'react'
 
 // Next Imports
@@ -23,11 +23,8 @@ import CircularProgress from '@mui/material/CircularProgress'
 import type { Mode } from '@core/types'
 
 // Component Imports
-import Logo from '@components/layout/shared/Logo'
 import Illustrations from '@components/Illustrations'
-
-// Config Imports
-import themeConfig from '@configs/themeConfig'
+import ModeDropdown from '@components/layout/shared/ModeDropdown'
 
 // Hook Imports
 import { useImageVariant } from '@core/hooks/useImageVariant'
@@ -46,6 +43,23 @@ const Login = ({ mode }: { mode: Mode }) => {
   const router = useRouter()
   const authBackground = useImageVariant(mode, lightImg, darkImg)
 
+  // Redirigir a /dashboard si ya hay una sesión activa
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('disagro_token')
+      if (token) {
+        api.getMe()
+          .then(() => {
+            router.replace('/dashboard')
+          })
+          .catch(() => {
+            localStorage.removeItem('disagro_token')
+            localStorage.removeItem('disagro_user')
+          })
+      }
+    }
+  }, [router])
+
   const handleClickShowPassword = () => setIsPasswordShown((show) => !show)
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -55,7 +69,7 @@ const Login = ({ mode }: { mode: Mode }) => {
 
     try {
       await api.login({ email: email.trim(), password })
-      router.push('/')
+      router.push('/dashboard')
     } catch (err: any) {
       setError(err.message || 'Credenciales inválidas. Verifique su correo y contraseña.')
     } finally {
@@ -64,8 +78,13 @@ const Login = ({ mode }: { mode: Mode }) => {
   }
 
   return (
-    <div className='flex flex-col justify-center items-center min-bs-[100dvh] relative p-6 bg-gray-50'>
-      <Card className='flex flex-col sm:is-[450px] shadow-lg rounded-2xl border border-gray-200'>
+    <div className='flex flex-col justify-center items-center min-bs-[100dvh] relative p-6 bg-backgroundDefault'>
+      {/* Botón superior de modo oscuro/claro */}
+      <div className='absolute top-4 right-4 z-20'>
+        <ModeDropdown />
+      </div>
+
+      <Card className='flex flex-col sm:is-[450px] shadow-xl rounded-2xl border border-borderColor bg-backgroundPaper z-10'>
         <CardContent className='p-6 sm:!p-10'>
           <div className='flex justify-center items-center mbe-6'>
             <div className='w-12 h-12 rounded-xl bg-[#2e7d32] flex items-center justify-center font-bold text-white text-2xl shadow-md'>
@@ -75,10 +94,10 @@ const Login = ({ mode }: { mode: Mode }) => {
 
           <div className='flex flex-col gap-5'>
             <div className='text-center'>
-              <Typography variant='h5' className='font-bold text-gray-900'>
+              <Typography variant='h5' className='font-bold text-textPrimary'>
                 Panel Administrativo Disagro
               </Typography>
-              <Typography className='text-xs text-gray-500 mbs-1'>
+              <Typography className='text-xs text-textSecondary mbs-1'>
                 Ingrese con sus credenciales autorizadas de operador
               </Typography>
             </div>
@@ -89,8 +108,8 @@ const Login = ({ mode }: { mode: Mode }) => {
               </Alert>
             )}
 
-            <div className='bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-xs text-emerald-900'>
-              <strong>Credenciales de Demo:</strong>
+            <div className='bg-emerald-500/10 border border-emerald-500/25 p-3.5 rounded-xl text-xs text-emerald-800 dark:text-emerald-300'>
+              <strong className='block mb-1 font-bold'>Credenciales de Acceso:</strong>
               <div>Correo: <code className='font-bold'>admin@disagro.com</code></div>
               <div>Contraseña: <code className='font-bold'>AdminPassword2026!</code></div>
             </div>
@@ -146,8 +165,8 @@ const Login = ({ mode }: { mode: Mode }) => {
               </Button>
 
               <div className='text-center pt-2'>
-                <Link href='/feria' className='text-xs text-[#2e7d32] font-semibold hover:underline'>
-                  ← Ir al Formulario de la Feria
+                <Link href='/feria' className='text-xs text-emerald-600 dark:text-emerald-400 font-semibold hover:underline'>
+                  ← Ir al Portal Público de la Feria
                 </Link>
               </div>
             </form>

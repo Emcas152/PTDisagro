@@ -10,6 +10,7 @@ import Providers from '@components/Providers'
 import Navigation from '@components/layout/vertical/Navigation'
 import Navbar from '@components/layout/vertical/Navbar'
 import VerticalFooter from '@components/layout/vertical/Footer'
+import AuthGuard from '@/components/AuthGuard'
 
 const Layout = async ({ children }: ChildrenType) => {
   // Vars
@@ -17,13 +18,15 @@ const Layout = async ({ children }: ChildrenType) => {
 
   return (
     <Providers direction={direction}>
-      <LayoutWrapper
-        verticalLayout={
-          <VerticalLayout navigation={<Navigation />} navbar={<Navbar />} footer={<VerticalFooter />}>
-            {children}
-          </VerticalLayout>
-        }
-      />
+      <AuthGuard>
+        <LayoutWrapper
+          verticalLayout={
+            <VerticalLayout navigation={<Navigation />} navbar={<Navbar />} footer={<VerticalFooter />}>
+              {children}
+            </VerticalLayout>
+          }
+        />
+      </AuthGuard>
     </Providers>
   )
 }

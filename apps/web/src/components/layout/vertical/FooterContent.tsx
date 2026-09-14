@@ -30,11 +30,11 @@ const FooterContent = () => {
       </p>
       {!isBreakpointReached && (
         <div className='flex items-center gap-4'>
-          <Link href='/' className='text-primary hover:underline'>
+          <Link href='/feria' target='_blank' className='text-primary hover:underline'>
             Portal Feria
           </Link>
-          <Link href='/login' className='text-primary hover:underline'>
-            Acceso Administrativo
+          <Link href='/dashboard' className='text-primary hover:underline'>
+            Panel Ejecutivo
           </Link>
           <span className='text-textSecondary text-xs'>
             PBX Atención al Cliente: <strong>2223-2425</strong>
