@@ -27,7 +27,6 @@ import {
 } from '@nestjs/swagger'
 import { CatalogItemType, RegistrationStatus } from '@prisma/client'
 import { FastifyReply, FastifyRequest } from 'fastify'
-import '../../types/fastify'
 import { CurrentUser } from '../../common/decorators/current-user.decorator'
 import { AuthGuard } from '../../common/guards/auth.guard'
 import { AdminService } from './admin.service'

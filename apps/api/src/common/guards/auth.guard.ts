@@ -18,7 +18,6 @@ import {
 } from '@nestjs/common'
 import * as crypto from 'crypto'
 import { FastifyRequest } from 'fastify'
-import '../../types/fastify'
 import { PrismaService } from '../../prisma/prisma.service'
 
 @Injectable()

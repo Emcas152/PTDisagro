@@ -26,7 +26,7 @@ export class SelectedItemDto implements SelectedItemInput {
   quantity: number
 }
 
-export class CustomerInfoDto implements CustomerInfo {
+export class CustomerInfoDto {
   @ApiProperty({
     description: 'Nombre completo del participante',
     example: 'Carlos Roberto Morales',
@@ -80,7 +80,7 @@ export class CustomerInfoDto implements CustomerInfo {
     enum: ContactPreference,
     default: ContactPreference.EMAIL,
   })
-  preferredContactMethod?: ContactPreference
+  preferredContactMethod?: ContactPreference = ContactPreference.EMAIL
 
   @ApiProperty({
     description: 'Indica si aceptó los términos y política de privacidad',

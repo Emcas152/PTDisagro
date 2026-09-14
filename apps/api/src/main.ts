@@ -8,6 +8,7 @@
  * y manejo centralizado de excepciones y validaciones.
  */
 
+import 'reflect-metadata'
 import { ValidationPipe, Logger } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import {

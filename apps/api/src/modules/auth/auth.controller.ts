@@ -25,7 +25,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger'
 import { FastifyReply, FastifyRequest } from 'fastify'
-import '../../types/fastify'
 import { CurrentUser } from '../../common/decorators/current-user.decorator'
 import { AuthGuard } from '../../common/guards/auth.guard'
 import { AuthService } from './auth.service'
