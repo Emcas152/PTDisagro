@@ -1,0 +1,241 @@
+// ============================================================================
+// ESQUEMA PRISMA ORM - BASE DE DATOS POSTGRESQL (FERIA DISAGRO)
+// ============================================================================
+//
+// Este archivo define los modelos relacionales, índices, restricciones y claves foráneas
+// para garantizar la integridad referencial y auditoría de la plataforma.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------------------------------
+// ENUMERACIONES
+// ----------------------------------------------------------------------------
+
+enum CatalogItemType {
+  SERVICE
+  PRODUCT
+}
+
+enum RegistrationStatus {
+  CONFIRMED
+  MODIFIED
+  CANCELLED
+}
+
+enum EventStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum ContactPreference {
+  EMAIL
+  PHONE
+  WHATSAPP
+}
+
+enum UserRole {
+  ADMIN
+  SUPERADMIN
+}
+
+// ----------------------------------------------------------------------------
+// MODELO: USUARIOS ADMINISTRATIVOS
+// ----------------------------------------------------------------------------
+/// Representa a los operadores y administradores del sistema con acceso al backoffice.
+model User {
+  id           String     @id @default(uuid())
+  name         String
+  email        String     @unique
+  passwordHash String
+  role         UserRole   @default(ADMIN)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  sessions     Session[]
+  auditLogs    AuditLog[]
+
+  @@map("users")
+}
+
+// ----------------------------------------------------------------------------
+// MODELO: SESIONES ACTIVAS (TOKENS HASHEADOS Y COOKIES HTTPONLY)
+// ----------------------------------------------------------------------------
+/// Registra las sesiones autenticadas; almacena únicamente el hash SHA-256 del token para evitar exposición.
+model Session {
+  id         String    @id @default(uuid())
+  userId     String
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime  @default(now())
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([userId])
+  @@map("sessions")
+}
+
+// ----------------------------------------------------------------------------
+// MODELO: EVENTO ANUAL DE PROMOCIONES
+// ----------------------------------------------------------------------------
+/// Información oficial del evento activo (fechas, lugar, límite de registro y estado).
+model Event {
+  id                   String         @id @default(uuid())
+  name                 String
+  description          String
+  location             String
+  startDate            DateTime
+  endDate              DateTime
+  registrationDeadline DateTime
+  status               EventStatus    @default(ACTIVE)
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  registrations        Registration[]
+
+  @@index([status])
+  @@map("events")
+}
+
+// ----------------------------------------------------------------------------
+// MODELO: CLIENTES / PARTICIPANTES
+// ----------------------------------------------------------------------------
+/// Registro de participantes con sus datos de contacto y preferencias.
+model Customer {
+  id                     String            @id @default(uuid())
+  fullName               String
+  email                  String
+  phone                  String
+  company                String?
+  jobTitle               String?
+  attendanceDate         String?
+  preferredContactMethod ContactPreference @default(EMAIL)
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+
+  registrations          Registration[]
+
+  @@index([email])
+  @@map("customers")
+}
+
+// ----------------------------------------------------------------------------
+// MODELO: ÍTEMS DEL CATÁLOGO (SERVICIOS Y PRODUCTOS)
+// ----------------------------------------------------------------------------
+/// Catálogo de servicios y productos disponibles para selección en la feria.
+model CatalogItem {
+  id                String            @id @default(uuid())
+  type              CatalogItemType
+  name              String
+  description       String?
+  price             Decimal           @db.Decimal(10, 2)
+  priceCents        Int
+  imageUrl          String?
+  category          String?
+  active            Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  registrationItems RegistrationItem[]
+
+  @@index([type, active])
+  @@map("catalog_items")
+}
+
+// ----------------------------------------------------------------------------
+// MODELO: REGISTRO / CONFIRMACIÓN DE ASISTENCIA
+// ----------------------------------------------------------------------------
+/// Registro maestro de participación y pre-orden con desglose final de descuentos calculados.
+model Registration {
+  id                         String             @id @default(uuid())
+  eventId                    String
+  customerId                 String
+  confirmationCode           String             @unique
+  editToken                  String?            @unique
+  idempotencyKey             String?            @unique
+  status                     RegistrationStatus @default(CONFIRMED)
+
+  // Subtotales congelados
+  serviceSubtotal            Decimal            @db.Decimal(10, 2)
+  productSubtotal            Decimal            @db.Decimal(10, 2)
+
+  // Porcentajes de descuento aplicados por regla de negocio
+  serviceDiscountPercentage  Int                @default(0)
+  productDiscountPercentage  Int                @default(0)
+
+  // Montos monetarios descontados
+  serviceDiscountAmount      Decimal            @db.Decimal(10, 2)
+  productDiscountAmount      Decimal            @db.Decimal(10, 2)
+  totalDiscountAmount        Decimal            @db.Decimal(10, 2)
+
+  // Total final estimado
+  estimatedTotal             Decimal            @db.Decimal(10, 2)
+
+  confirmedAt                DateTime           @default(now())
+  createdAt                  DateTime           @default(now())
+  updatedAt                  DateTime           @updatedAt
+
+  event                      Event              @relation(fields: [eventId], references: [id])
+  customer                   Customer           @relation(fields: [customerId], references: [id])
+  items                      RegistrationItem[]
+
+  @@index([eventId])
+  @@index([customerId])
+  @@index([confirmationCode])
+  @@index([createdAt])
+  @@map("registrations")
+}
+
+// ----------------------------------------------------------------------------
+// MODELO: DETALLE DE ÍTEMS REGISTRADOS (SNAPSHOT HISTÓRICO INMUTABLE)
+// ----------------------------------------------------------------------------
+/// Guarda el snapshot del nombre y precio en el momento de la confirmación para evitar alteraciones futuras.
+model RegistrationItem {
+  id                String          @id @default(uuid())
+  registrationId    String
+  catalogItemId     String
+  itemType          CatalogItemType
+  quantity          Int
+  nameSnapshot      String
+  unitPriceSnapshot Decimal         @db.Decimal(10, 2)
+  lineTotal         Decimal         @db.Decimal(10, 2)
+
+  registration      Registration    @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  catalogItem       CatalogItem     @relation(fields: [catalogItemId], references: [id])
+
+  @@index([registrationId])
+  @@index([catalogItemId])
+  @@map("registration_items")
+}
+
+// ----------------------------------------------------------------------------
+// MODELO: LOG DE AUDITORÍA
+// ----------------------------------------------------------------------------
+/// Registra operaciones y modificaciones administrativas con trazabilidad de IP y fecha.
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  metadata  Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

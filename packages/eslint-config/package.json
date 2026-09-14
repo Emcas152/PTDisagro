@@ -1,0 +1,9 @@
+{
+  "name": "@ptdisagro/eslint-config",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "dependencies": {
+    "eslint-config-prettier": "^9.1.0"
+  }
+}

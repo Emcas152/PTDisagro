@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  # ==============================================================================
+  # BASE DE DATOS: POSTGRESQL 16
+  # ==============================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: disagro_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: disagro_promotions
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d disagro_promotions']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - disagro_network
+
+  # ==============================================================================
+  # BACKEND API: NESTJS + FASTIFY + PRISMA
+  # ==============================================================================
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: disagro_api
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:postgrespassword@postgres:5432/disagro_promotions?schema=public
+      PORT: 4000
+      HOST: 0.0.0.0
+      COOKIE_SECRET: disagro-super-secret-session-cookie-key-2026
+      CLIENT_URL: http://localhost:3000
+    ports:
+      - '4000:4000'
+    healthcheck:
+      test: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:4000/api/v1/health || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - disagro_network
+
+  # ==============================================================================
+  # FRONTEND WEB: NEXT.JS 14 (PORTAL FERIA + BACKOFFICE)
+  # ==============================================================================
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: disagro_web
+    restart: always
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      HOST: 0.0.0.0
+      NEXT_PUBLIC_API_URL: http://localhost:4000/api/v1
+    ports:
+      - '3000:3000'
+    networks:
+      - disagro_network
+
+networks:
+  disagro_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
