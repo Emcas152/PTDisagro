@@ -5,10 +5,8 @@ import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import TextField from '@mui/material/TextField'
 import InputAdornment from '@mui/material/InputAdornment'
-import Chip from '@mui/material/Chip'
 import Checkbox from '@mui/material/Checkbox'
 import IconButton from '@mui/material/IconButton'
-import Tooltip from '@mui/material/Tooltip'
 import { DiscountCalculationResult } from '@ptdisagro/contracts'
 
 export interface CatalogItem {
@@ -35,13 +33,41 @@ interface CatalogSelectorCardProps {
   isLoadingPreview?: boolean
 }
 
+const fieldSx = {
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '10px',
+    backgroundColor: 'var(--mui-palette-background-paper)',
+    transition: 'all 0.2s ease',
+    '& .MuiOutlinedInput-notchedOutline': {
+      borderColor: 'var(--mui-palette-divider, rgba(0, 0, 0, 0.25))',
+      borderWidth: '1.5px',
+    },
+    '&:hover .MuiOutlinedInput-notchedOutline': {
+      borderColor: '#2e7d32',
+      borderWidth: '1.5px',
+    },
+    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+      borderColor: '#2e7d32 !important',
+      borderWidth: '2px',
+      boxShadow: '0 0 0 3px rgba(46, 125, 50, 0.15)',
+    },
+  },
+  '& .MuiInputBase-input': {
+    color: 'var(--mui-palette-text-primary)',
+    fontWeight: 500,
+    '&::placeholder': {
+      color: 'var(--mui-palette-text-secondary)',
+      opacity: 0.65,
+    },
+  },
+}
+
 export default function CatalogSelectorCard({
   items,
   selectedItems,
   onToggleItem,
   onUpdateQuantity,
   discountBreakdown,
-  isLoadingPreview,
 }: CatalogSelectorCardProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState<'ALL' | 'SERVICE' | 'PRODUCT'>('ALL')
@@ -67,18 +93,18 @@ export default function CatalogSelectorCard({
   const totalSavings = discountBreakdown?.totalSavingsAmount || 0
 
   return (
-    <Card className='shadow-sm border border-gray-200 rounded-xl overflow-hidden bg-white'>
+    <Card className='shadow-md border border-borderColor rounded-2xl overflow-hidden bg-backgroundPaper'>
       {/* Cabecera con Badge 2 */}
-      <div className='px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2 bg-gray-50/50'>
+      <div className='px-6 py-4 border-b border-borderColor flex items-center justify-between flex-wrap gap-2 bg-actionHover'>
         <div className='flex items-center space-x-3'>
           <div className='w-8 h-8 rounded-full bg-[#2e7d32] text-white flex items-center justify-center font-bold text-sm shadow-sm'>
             2
           </div>
           <div>
-            <h2 className='text-lg font-bold text-gray-800 leading-tight'>
+            <h2 className='text-lg font-bold text-textPrimary leading-tight'>
               Seleccione Servicios y Productos de su interés
             </h2>
-            <p className='text-xs text-gray-500'>
+            <p className='text-xs text-textSecondary'>
               Los descuentos se calculan de manera automática e independiente en el servidor
             </p>
           </div>
@@ -86,7 +112,7 @@ export default function CatalogSelectorCard({
 
         {/* Contador de seleccionados */}
         <div className='flex items-center space-x-2'>
-          <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300'>
+          <span className='inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30'>
             {selectedItems.size} seleccionados
           </span>
         </div>
@@ -96,14 +122,14 @@ export default function CatalogSelectorCard({
         {/* Barra de Filtros y Búsqueda */}
         <div className='flex flex-col sm:flex-row gap-3 items-center justify-between'>
           {/* Tabs de tipo */}
-          <div className='flex items-center space-x-1 w-full sm:w-auto bg-gray-100 p-1 rounded-lg'>
+          <div className='flex items-center space-x-1 w-full sm:w-auto bg-actionHover p-1 rounded-xl border border-borderColor'>
             <button
               type='button'
               onClick={() => setFilterType('ALL')}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
                 filterType === 'ALL'
-                  ? 'bg-white text-gray-900 shadow-sm font-semibold'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-backgroundPaper text-textPrimary shadow-sm font-semibold'
+                  : 'text-textSecondary hover:text-textPrimary'
               }`}
             >
               Todos ({items.length})
@@ -111,10 +137,10 @@ export default function CatalogSelectorCard({
             <button
               type='button'
               onClick={() => setFilterType('SERVICE')}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
                 filterType === 'SERVICE'
-                  ? 'bg-white text-[#2e7d32] shadow-sm font-semibold'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-backgroundPaper text-emerald-500 shadow-sm font-semibold'
+                  : 'text-textSecondary hover:text-textPrimary'
               }`}
             >
               Servicios ({items.filter((i) => i.type === 'SERVICE').length})
@@ -122,10 +148,10 @@ export default function CatalogSelectorCard({
             <button
               type='button'
               onClick={() => setFilterType('PRODUCT')}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
                 filterType === 'PRODUCT'
-                  ? 'bg-white text-blue-700 shadow-sm font-semibold'
-                  : 'text-gray-600 hover:text-gray-900'
+                  ? 'bg-backgroundPaper text-blue-500 shadow-sm font-semibold'
+                  : 'text-textSecondary hover:text-textPrimary'
               }`}
             >
               Productos ({items.filter((i) => i.type === 'PRODUCT').length})
@@ -140,10 +166,11 @@ export default function CatalogSelectorCard({
               placeholder='Buscar servicio o producto...'
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              sx={fieldSx}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position='start'>
-                    <i className='ri-search-line text-gray-400' />
+                    <i className='ri-search-line text-textDisabled' />
                   </InputAdornment>
                 ),
               }}
@@ -164,8 +191,8 @@ export default function CatalogSelectorCard({
                 onClick={() => onToggleItem(item)}
                 className={`relative flex items-center justify-between p-3.5 rounded-xl border transition-all cursor-pointer ${
                   isSelected
-                    ? 'border-[#2e7d32] bg-emerald-50/40 shadow-sm'
-                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                    ? 'border-[#2e7d32] bg-emerald-500/10 shadow-sm'
+                    : 'border-borderColor hover:border-emerald-500/40 bg-backgroundPaper hover:bg-actionHover'
                 }`}
               >
                 <div className='flex items-start space-x-3'>
@@ -184,14 +211,14 @@ export default function CatalogSelectorCard({
                   />
                   <div>
                     <div className='flex items-center space-x-2'>
-                      <span className='text-sm font-semibold text-gray-900 leading-snug'>
+                      <span className='text-sm font-semibold text-textPrimary leading-snug'>
                         {item.name}
                       </span>
                       <span
                         className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${
                           item.type === 'SERVICE'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-blue-100 text-blue-800'
+                            ? 'bg-emerald-500/15 text-emerald-500'
+                            : 'bg-blue-500/15 text-blue-500'
                         }`}
                       >
                         {item.type === 'SERVICE' ? 'Servicio' : 'Producto'}
@@ -199,12 +226,12 @@ export default function CatalogSelectorCard({
                     </div>
 
                     {item.description && (
-                      <p className='text-xs text-gray-500 line-clamp-1 mt-0.5'>
+                      <p className='text-xs text-textSecondary line-clamp-1 mt-0.5'>
                         {item.description}
                       </p>
                     )}
 
-                    <div className='mt-1 text-xs font-bold text-gray-800'>
+                    <div className='mt-1 text-xs font-bold text-textPrimary'>
                       Q. {priceNum.toLocaleString('es-GT', { minimumFractionDigits: 2 })}
                     </div>
                   </div>
@@ -213,25 +240,25 @@ export default function CatalogSelectorCard({
                 {/* Controles de cantidad solo para productos seleccionados */}
                 {isSelected && item.type === 'PRODUCT' && (
                   <div
-                    className='flex items-center space-x-1 bg-white border border-gray-300 rounded-lg p-0.5 shadow-xs'
+                    className='flex items-center space-x-1 bg-backgroundPaper border border-borderColor rounded-lg p-0.5 shadow-xs'
                     onClick={(e) => e.stopPropagation()}
                   >
                     <IconButton
                       size='small'
                       disabled={quantity <= 1}
                       onClick={() => onUpdateQuantity(item.id, -1)}
-                      className='text-gray-600 hover:bg-gray-100'
+                      className='text-textSecondary hover:bg-actionHover'
                       sx={{ width: 22, height: 22 }}
                     >
                       <i className='ri-subtract-line text-xs' />
                     </IconButton>
-                    <span className='px-1.5 text-xs font-bold text-gray-800 min-w-[20px] text-center'>
+                    <span className='px-1.5 text-xs font-bold text-textPrimary min-w-[20px] text-center'>
                       {quantity}
                     </span>
                     <IconButton
                       size='small'
                       onClick={() => onUpdateQuantity(item.id, 1)}
-                      className='text-gray-600 hover:bg-gray-100'
+                      className='text-textSecondary hover:bg-actionHover'
                       sx={{ width: 22, height: 22 }}
                     >
                       <i className='ri-add-line text-xs' />
@@ -243,24 +270,24 @@ export default function CatalogSelectorCard({
           })}
 
           {filteredItems.length === 0 && (
-            <div className='col-span-2 text-center py-10 text-gray-500'>
-              <i className='ri-inbox-line text-4xl text-gray-300 block mb-2' />
+            <div className='col-span-2 text-center py-10 text-textSecondary'>
+              <i className='ri-inbox-line text-4xl text-textDisabled block mb-2' />
               No se encontraron servicios o productos con ese criterio.
             </div>
           )}
         </div>
 
         {/* Panel oscuro de Descuentos Obtenidos en Tiempo Real */}
-        <div className='bg-[#24292e] text-white rounded-xl p-4 shadow-sm border border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-4'>
+        <div className='bg-[#1e2327] text-white rounded-2xl p-4 shadow-sm border border-borderColor flex flex-col sm:flex-row items-center justify-between gap-4'>
           <div className='space-y-1 w-full sm:w-auto text-center sm:text-left'>
             <div className='flex items-center justify-center sm:justify-start space-x-2'>
-              <span className='text-xs text-gray-400 font-medium'>
+              <span className='text-xs text-gray-300 font-medium'>
                 Descuento obtenido en Servicios ({servicesCount}):
               </span>
               <span
                 className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                   serviceDiscount > 0
-                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-600/50'
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
                     : 'bg-gray-700 text-gray-300'
                 }`}
               >
@@ -269,13 +296,13 @@ export default function CatalogSelectorCard({
             </div>
 
             <div className='flex items-center justify-center sm:justify-start space-x-2'>
-              <span className='text-xs text-gray-400 font-medium'>
+              <span className='text-xs text-gray-300 font-medium'>
                 Descuento obtenido en Productos ({productsCount}):
               </span>
               <span
                 className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                   productDiscount > 0
-                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-600/50'
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
                     : 'bg-gray-700 text-gray-300'
                 }`}
               >

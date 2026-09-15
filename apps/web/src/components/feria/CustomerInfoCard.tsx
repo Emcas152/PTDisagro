@@ -28,23 +28,69 @@ interface CustomerInfoCardProps {
   errors?: Record<string, string>
 }
 
+const fieldSx = {
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '10px',
+    backgroundColor: 'var(--mui-palette-background-paper)',
+    transition: 'all 0.2s ease',
+    '& .MuiOutlinedInput-notchedOutline': {
+      borderColor: 'var(--mui-palette-divider, rgba(0, 0, 0, 0.25))',
+      borderWidth: '1.5px',
+    },
+    '&:hover .MuiOutlinedInput-notchedOutline': {
+      borderColor: '#2e7d32',
+      borderWidth: '1.5px',
+    },
+    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+      borderColor: '#2e7d32 !important',
+      borderWidth: '2px',
+      boxShadow: '0 0 0 3px rgba(46, 125, 50, 0.15)',
+    },
+    '&.Mui-error .MuiOutlinedInput-notchedOutline': {
+      borderColor: '#d32f2f !important',
+    },
+  },
+  '& .MuiInputLabel-root': {
+    color: 'var(--mui-palette-text-secondary)',
+    fontWeight: 500,
+    '&.Mui-focused': {
+      color: '#2e7d32 !important',
+      fontWeight: 600,
+    },
+    '&.Mui-error': {
+      color: '#d32f2f !important',
+    },
+  },
+  '& .MuiInputBase-input': {
+    color: 'var(--mui-palette-text-primary)',
+    fontWeight: 500,
+    '&::placeholder': {
+      color: 'var(--mui-palette-text-secondary)',
+      opacity: 0.65,
+    },
+  },
+  '& .MuiSelect-icon': {
+    color: 'var(--mui-palette-text-secondary)',
+  },
+}
+
 export default function CustomerInfoCard({
   formData,
   onChange,
   errors = {},
 }: CustomerInfoCardProps) {
   return (
-    <Card className='shadow-sm border border-gray-200 rounded-xl overflow-hidden bg-white'>
+    <Card className='shadow-md border border-borderColor rounded-2xl overflow-hidden bg-backgroundPaper'>
       {/* Cabecera de la tarjeta con Badge circular verde */}
-      <div className='px-6 py-4 border-b border-gray-100 flex items-center space-x-3 bg-gray-50/50'>
+      <div className='px-6 py-4 border-b border-borderColor flex items-center space-x-3 bg-actionHover'>
         <div className='w-8 h-8 rounded-full bg-[#2e7d32] text-white flex items-center justify-center font-bold text-sm shadow-sm'>
           1
         </div>
         <div>
-          <h2 className='text-lg font-bold text-gray-800 leading-tight'>
+          <h2 className='text-lg font-bold text-textPrimary leading-tight'>
             Ingrese su información
           </h2>
-          <p className='text-xs text-gray-500'>
+          <p className='text-xs text-textSecondary'>
             Complete sus datos para personalizar su portafolio de promociones
           </p>
         </div>
@@ -62,10 +108,11 @@ export default function CustomerInfoCard({
             error={!!errors.fullName}
             helperText={errors.fullName}
             size='small'
+            sx={fieldSx}
             InputProps={{
               startAdornment: (
                 <InputAdornment position='start'>
-                  <i className='ri-user-line text-gray-400' />
+                  <i className='ri-user-line text-textDisabled' />
                 </InputAdornment>
               ),
             }}
@@ -84,10 +131,11 @@ export default function CustomerInfoCard({
             error={!!errors.email}
             helperText={errors.email}
             size='small'
+            sx={fieldSx}
             InputProps={{
               startAdornment: (
                 <InputAdornment position='start'>
-                  <i className='ri-mail-line text-gray-400' />
+                  <i className='ri-mail-line text-textDisabled' />
                 </InputAdornment>
               ),
             }}
@@ -102,10 +150,11 @@ export default function CustomerInfoCard({
             error={!!errors.phone}
             helperText={errors.phone}
             size='small'
+            sx={fieldSx}
             InputProps={{
               startAdornment: (
                 <InputAdornment position='start'>
-                  <i className='ri-phone-line text-gray-400' />
+                  <i className='ri-phone-line text-textDisabled' />
                 </InputAdornment>
               ),
             }}
@@ -121,10 +170,11 @@ export default function CustomerInfoCard({
             value={formData.company || ''}
             onChange={(e) => onChange('company', e.target.value)}
             size='small'
+            sx={fieldSx}
             InputProps={{
               startAdornment: (
                 <InputAdornment position='start'>
-                  <i className='ri-building-line text-gray-400' />
+                  <i className='ri-building-line text-textDisabled' />
                 </InputAdornment>
               ),
             }}
@@ -137,10 +187,11 @@ export default function CustomerInfoCard({
             value={formData.jobTitle || ''}
             onChange={(e) => onChange('jobTitle', e.target.value)}
             size='small'
+            sx={fieldSx}
             InputProps={{
               startAdornment: (
                 <InputAdornment position='start'>
-                  <i className='ri-briefcase-line text-gray-400' />
+                  <i className='ri-briefcase-line text-textDisabled' />
                 </InputAdornment>
               ),
             }}
@@ -158,6 +209,7 @@ export default function CustomerInfoCard({
             error={!!errors.attendanceDate}
             helperText={errors.attendanceDate || 'Seleccione cuándo asistirá a la feria'}
             size='small'
+            sx={fieldSx}
           >
             <MenuItem value=''>Seleccione una opción...</MenuItem>
             <MenuItem value='2026-10-15 09:00 AM'>Jueves 15 Oct - 09:00 AM (Inauguración)</MenuItem>
@@ -174,6 +226,7 @@ export default function CustomerInfoCard({
             value={formData.preferredContactMethod}
             onChange={(e) => onChange('preferredContactMethod', e.target.value)}
             size='small'
+            sx={fieldSx}
           >
             <MenuItem value='EMAIL'>Correo Electrónico</MenuItem>
             <MenuItem value='WHATSAPP'>WhatsApp Corporativo</MenuItem>
@@ -197,9 +250,9 @@ export default function CustomerInfoCard({
               />
             }
             label={
-              <span className='text-xs text-gray-600'>
+              <span className='text-xs text-textSecondary'>
                 Acepto los{' '}
-                <a href='#' className='text-[#2e7d32] underline hover:text-emerald-800'>
+                <a href='#' className='text-emerald-600 dark:text-emerald-400 font-semibold underline hover:opacity-80'>
                   términos y condiciones
                 </a>{' '}
                 y la política de privacidad de Disagro para recibir el portafolio promocional.

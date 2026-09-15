@@ -273,7 +273,7 @@ export default function FeriaPage() {
   }
 
   return (
-    <div className='min-h-screen bg-[#f4f5f7] flex flex-col'>
+    <div className='min-h-screen bg-backgroundDefault text-textPrimary flex flex-col transition-colors duration-200'>
       <FeriaHeader />
 
       {/* Si ya confirmó, mostrar el Voucher */}

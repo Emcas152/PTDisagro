@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import Button from '@mui/material/Button'
+import ModeDropdown from '@components/layout/shared/ModeDropdown'
 
 export default function FeriaHeader() {
   return (
@@ -22,12 +23,16 @@ export default function FeriaHeader() {
           </div>
         </div>
 
-        {/* Contacto y Botón Administrativo */}
-        <div className='flex items-center space-x-4'>
+        {/* Contacto, Selector de Tema y Botón Administrativo */}
+        <div className='flex items-center space-x-3 sm:space-x-4'>
           <div className='hidden md:flex items-center text-xs text-gray-300 space-x-1'>
             <i className='ri-phone-line text-emerald-400 text-sm' />
-            <span>Atención al cliente:</span>
+            <span>Atención:</span>
             <strong className='text-white ml-1 font-semibold'>2223-2425</strong>
+          </div>
+
+          <div className='text-white flex items-center'>
+            <ModeDropdown />
           </div>
 
           <Link href='/' passHref>

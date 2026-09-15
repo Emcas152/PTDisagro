@@ -60,42 +60,42 @@ export default function ConfirmationModal({
         </span>
       </DialogTitle>
 
-      <DialogContent className='p-6 space-y-5'>
+      <DialogContent className='p-6 space-y-5 bg-backgroundPaper text-textPrimary'>
         {/* Datos del Participante */}
-        <div className='bg-gray-50 rounded-xl p-4 border border-gray-200 text-xs space-y-1.5'>
-          <h4 className='font-bold text-gray-800 text-sm mb-2 flex items-center gap-1.5'>
+        <div className='bg-actionHover rounded-xl p-4 border border-borderColor text-xs space-y-1.5'>
+          <h4 className='font-bold text-textPrimary text-sm mb-2 flex items-center gap-1.5'>
             <i className='ri-user-follow-line text-[#2e7d32]' /> Datos del Participante
           </h4>
-          <div className='grid grid-cols-2 gap-2 text-gray-600'>
+          <div className='grid grid-cols-2 gap-2 text-textSecondary'>
             <div>
-              <span className='text-gray-400'>Nombre:</span>{' '}
-              <strong className='text-gray-800'>{customer.fullName}</strong>
+              <span className='opacity-75'>Nombre:</span>{' '}
+              <strong className='text-textPrimary font-semibold'>{customer.fullName}</strong>
             </div>
             <div>
-              <span className='text-gray-400'>Email:</span>{' '}
-              <strong className='text-gray-800'>{customer.email}</strong>
+              <span className='opacity-75'>Email:</span>{' '}
+              <strong className='text-textPrimary font-semibold'>{customer.email}</strong>
             </div>
             <div>
-              <span className='text-gray-400'>Teléfono:</span>{' '}
-              <strong className='text-gray-800'>{customer.phone}</strong>
+              <span className='opacity-75'>Teléfono:</span>{' '}
+              <strong className='text-textPrimary font-semibold'>{customer.phone}</strong>
             </div>
             <div>
-              <span className='text-gray-400'>Asistencia:</span>{' '}
-              <strong className='text-gray-800'>{customer.attendanceDate}</strong>
+              <span className='opacity-75'>Asistencia:</span>{' '}
+              <strong className='text-textPrimary font-semibold'>{customer.attendanceDate}</strong>
             </div>
           </div>
         </div>
 
         {/* Lista de Ítems Seleccionados */}
         <div>
-          <h4 className='font-bold text-gray-800 text-xs uppercase tracking-wider mb-2'>
+          <h4 className='font-bold text-textPrimary text-xs uppercase tracking-wider mb-2'>
             Ítems Seleccionados ({itemsList.length})
           </h4>
           <div className='max-h-44 overflow-y-auto space-y-1.5 pr-1 text-xs'>
             {itemsList.map((item) => (
               <div
                 key={item.id}
-                className='flex items-center justify-between p-2 rounded-lg bg-gray-50 border border-gray-100'
+                className='flex items-center justify-between p-2.5 rounded-lg bg-actionHover border border-borderColor'
               >
                 <div className='flex items-center space-x-2'>
                   <span
@@ -103,11 +103,11 @@ export default function ConfirmationModal({
                       item.type === 'SERVICE' ? 'bg-[#2e7d32]' : 'bg-blue-600'
                     }`}
                   />
-                  <span className='font-semibold text-gray-800'>
+                  <span className='font-semibold text-textPrimary'>
                     {item.name} {item.quantity > 1 ? `(x${item.quantity})` : ''}
                   </span>
                 </div>
-                <span className='font-bold text-gray-700'>
+                <span className='font-bold text-textPrimary'>
                   Q. {item.lineTotal.toLocaleString('es-GT', { minimumFractionDigits: 2 })}
                 </span>
               </div>
@@ -115,13 +115,13 @@ export default function ConfirmationModal({
           </div>
         </div>
 
-        <Divider />
+        <Divider className='border-borderColor' />
 
         {/* Desglose Financiero Oficial */}
         <div className='space-y-2 text-xs'>
-          <div className='flex justify-between text-gray-600'>
+          <div className='flex justify-between text-textSecondary'>
             <span>Subtotal Servicios ({breakdown.servicesCount} items):</span>
-            <span>
+            <span className='font-semibold text-textPrimary'>
               Q.{' '}
               {breakdown.serviceSubtotal.toLocaleString('es-GT', {
                 minimumFractionDigits: 2,
@@ -129,9 +129,9 @@ export default function ConfirmationModal({
             </span>
           </div>
 
-          <div className='flex justify-between text-gray-600'>
+          <div className='flex justify-between text-textSecondary'>
             <span>Subtotal Productos ({breakdown.productsCount} items):</span>
-            <span>
+            <span className='font-semibold text-textPrimary'>
               Q.{' '}
               {breakdown.productSubtotal.toLocaleString('es-GT', {
                 minimumFractionDigits: 2,
@@ -139,7 +139,7 @@ export default function ConfirmationModal({
             </span>
           </div>
 
-          <div className='flex justify-between text-[#2e7d32] font-semibold bg-emerald-50 px-2.5 py-1 rounded-md'>
+          <div className='flex justify-between text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1.5 rounded-lg'>
             <span>
               Descuento Servicios ({breakdown.serviceDiscountPercentage}%):
             </span>
@@ -151,7 +151,7 @@ export default function ConfirmationModal({
             </span>
           </div>
 
-          <div className='flex justify-between text-blue-800 font-semibold bg-blue-50 px-2.5 py-1 rounded-md'>
+          <div className='flex justify-between text-blue-600 dark:text-blue-400 font-semibold bg-blue-500/10 border border-blue-500/20 px-2.5 py-1.5 rounded-lg'>
             <span>
               Descuento Productos ({breakdown.productDiscountPercentage}%):
             </span>
@@ -163,7 +163,7 @@ export default function ConfirmationModal({
             </span>
           </div>
 
-          <div className='flex justify-between text-emerald-700 font-bold pt-1 border-t border-gray-100'>
+          <div className='flex justify-between text-emerald-600 dark:text-emerald-400 font-bold pt-1 border-t border-borderColor'>
             <span>Ahorro Total Obtenido:</span>
             <span>
               Q.{' '}
@@ -173,9 +173,9 @@ export default function ConfirmationModal({
             </span>
           </div>
 
-          <div className='flex justify-between items-center text-sm font-black text-gray-900 pt-2 border-t-2 border-gray-300'>
+          <div className='flex justify-between items-center text-sm font-black text-textPrimary pt-2 border-t-2 border-borderColor'>
             <span>Total Estimado a Invertir:</span>
-            <span className='text-lg text-emerald-800 font-black'>
+            <span className='text-xl text-emerald-600 dark:text-emerald-400 font-black'>
               Q.{' '}
               {breakdown.estimatedTotal.toLocaleString('es-GT', {
                 minimumFractionDigits: 2,
@@ -185,7 +185,7 @@ export default function ConfirmationModal({
         </div>
       </DialogContent>
 
-      <DialogActions className='bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-between'>
+      <DialogActions className='bg-actionHover px-6 py-4 border-t border-borderColor flex justify-between'>
         <Button
           onClick={onClose}
           disabled={isSubmitting}
