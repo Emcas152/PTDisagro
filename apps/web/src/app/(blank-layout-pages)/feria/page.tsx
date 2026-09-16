@@ -8,6 +8,8 @@ import {
   DiscountCalculationResult,
   CustomerInfoSchema,
   ContactPreference,
+  calculatePromotionalTotals,
+  CalculationItemInput,
 } from '@ptdisagro/contracts'
 import FeriaHeader from '@components/feria/FeriaHeader'
 import FeriaFooter from '@components/feria/FeriaFooter'
@@ -154,6 +156,40 @@ export default function FeriaPage() {
         return
       }
 
+      // 1. Cálculo reactivo inmediato en cliente (0ms) usando el motor matemático oficial
+      const localCalculationInputs: CalculationItemInput[] = []
+      const localItemsList: any[] = []
+
+      for (const [catalogItemId, quantity] of selectedItems.entries()) {
+        const item = catalog.find((c) => c.id === catalogItemId)
+        if (item) {
+          const priceNum = typeof item.price === 'string' ? parseFloat(item.price) : item.price
+          const priceCents = (item as any).priceCents || Math.round(priceNum * 100)
+          localCalculationInputs.push({
+            catalogItemId: item.id,
+            name: item.name,
+            priceCents,
+            quantity,
+            type: item.type,
+          })
+          localItemsList.push({
+            id: item.id,
+            name: item.name,
+            type: item.type,
+            price: priceNum,
+            quantity,
+            lineTotal: priceNum * quantity,
+          })
+        }
+      }
+
+      if (localCalculationInputs.length > 0) {
+        const localBreakdown = calculatePromotionalTotals(localCalculationInputs)
+        setPreviewBreakdown(localBreakdown)
+        setPreviewItemsList(localItemsList)
+      }
+
+      // 2. Sincronización oficial y verificación de precios con el backend
       setIsLoadingPreview(true)
       const itemsPayload = Array.from(selectedItems.entries()).map(
         ([catalogItemId, quantity]) => ({
@@ -164,18 +200,20 @@ export default function FeriaPage() {
 
       try {
         const result = await api.previewRegistration(itemsPayload)
-        setPreviewBreakdown(result.breakdown)
-        setPreviewItemsList(result.items)
+        if (result && result.breakdown) {
+          setPreviewBreakdown(result.breakdown)
+          setPreviewItemsList(result.items)
+        }
       } catch (error) {
-        console.error('Error calculando preview:', error)
+        console.error('Error calculando preview en servidor:', error)
       } finally {
         setIsLoadingPreview(false)
       }
     }
 
-    const timer = setTimeout(updatePreview, 250)
+    const timer = setTimeout(updatePreview, 100)
     return () => clearTimeout(timer)
-  }, [selectedItems])
+  }, [selectedItems, catalog])
 
   // Manejo de cambios en el formulario de cliente
   const handleCustomerChange = (field: keyof CustomerFormData, value: any) => {

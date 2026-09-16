@@ -121,15 +121,15 @@ export default function CatalogSelectorCard({
       <CardContent className='p-6 space-y-4'>
         {/* Barra de Filtros y Búsqueda */}
         <div className='flex flex-col sm:flex-row gap-3 items-center justify-between'>
-          {/* Tabs de tipo */}
+          {/* Tabs de tipo con estilo explícito y fondo transparente para modo oscuro y claro */}
           <div className='flex items-center space-x-1 w-full sm:w-auto bg-actionHover p-1 rounded-xl border border-borderColor'>
             <button
               type='button'
               onClick={() => setFilterType('ALL')}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+              className={`px-3.5 py-1.5 text-xs rounded-lg transition-all border-0 outline-none cursor-pointer ${
                 filterType === 'ALL'
-                  ? 'bg-backgroundPaper text-textPrimary shadow-sm font-semibold'
-                  : 'text-textSecondary hover:text-textPrimary'
+                  ? 'bg-[#2e7d32] text-white shadow-sm font-bold'
+                  : 'bg-transparent text-textSecondary hover:text-textPrimary hover:bg-actionSelected font-medium'
               }`}
             >
               Todos ({items.length})
@@ -137,10 +137,10 @@ export default function CatalogSelectorCard({
             <button
               type='button'
               onClick={() => setFilterType('SERVICE')}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+              className={`px-3.5 py-1.5 text-xs rounded-lg transition-all border-0 outline-none cursor-pointer ${
                 filterType === 'SERVICE'
-                  ? 'bg-backgroundPaper text-emerald-500 shadow-sm font-semibold'
-                  : 'text-textSecondary hover:text-textPrimary'
+                  ? 'bg-emerald-600 text-white shadow-sm font-bold'
+                  : 'bg-transparent text-textSecondary hover:text-emerald-500 hover:bg-actionSelected font-medium'
               }`}
             >
               Servicios ({items.filter((i) => i.type === 'SERVICE').length})
@@ -148,10 +148,10 @@ export default function CatalogSelectorCard({
             <button
               type='button'
               onClick={() => setFilterType('PRODUCT')}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+              className={`px-3.5 py-1.5 text-xs rounded-lg transition-all border-0 outline-none cursor-pointer ${
                 filterType === 'PRODUCT'
-                  ? 'bg-backgroundPaper text-blue-500 shadow-sm font-semibold'
-                  : 'text-textSecondary hover:text-textPrimary'
+                  ? 'bg-blue-600 text-white shadow-sm font-bold'
+                  : 'bg-transparent text-textSecondary hover:text-blue-500 hover:bg-actionSelected font-medium'
               }`}
             >
               Productos ({items.filter((i) => i.type === 'PRODUCT').length})
