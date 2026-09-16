@@ -28,6 +28,8 @@ COPY apps/web ./apps/web
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 # Compilar iconos, contratos y luego el frontend
 RUN pnpm --filter @ptdisagro/web build:icons
