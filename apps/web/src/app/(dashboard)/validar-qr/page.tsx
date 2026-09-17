@@ -85,6 +85,32 @@ export default function ValidarQrPage() {
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null)
   const scannerContainerId = 'qr-reader-container'
 
+  // Escaneo de código QR a partir de un archivo de imagen (PNG/JPG/WhatsApp)
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setError(null)
+    setCameraError(null)
+
+    try {
+      const { Html5Qrcode } = await import('html5-qrcode')
+      const html5QrCode = new Html5Qrcode(scannerContainerId)
+      const decodedText = await html5QrCode.scanFile(file, false)
+      playSuccessBeep()
+      const code = extractConfirmationCode(decodedText)
+      setManualCode(code)
+      handleSearch(code)
+    } catch {
+      setError(
+        'No se pudo leer ningún código QR en la imagen seleccionada. Asegúrese de que el código sea nítido y legible.',
+      )
+    } finally {
+      // Limpiar input para permitir seleccionar el mismo archivo si se desea
+      e.target.value = ''
+    }
+  }
+
   // Cargar lista de cámaras disponibles al montar
   useEffect(() => {
     let isMounted = true
@@ -392,6 +418,36 @@ export default function ValidarQrPage() {
                   </Button>
                 </div>
               )}
+
+              <Divider className='border-borderColor my-2' />
+
+              {/* Opción de subir archivo de imagen */}
+              <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-1'>
+                <span className='text-[11px] text-textSecondary'>¿Tiene una captura o foto enviada por WhatsApp?</span>
+                <label className='cursor-pointer'>
+                  <input
+                    type='file'
+                    accept='image/*'
+                    style={{ display: 'none' }}
+                    onChange={handleFileUpload}
+                  />
+                  <Button
+                    component='span'
+                    size='small'
+                    variant='outlined'
+                    sx={{
+                      textTransform: 'none',
+                      borderRadius: '8px',
+                      fontSize: '11px',
+                      borderColor: 'var(--mui-palette-divider)',
+                      color: 'var(--mui-palette-text-primary)',
+                    }}
+                    startIcon={<i className='ri-image-line' />}
+                  >
+                    Cargar Imagen QR
+                  </Button>
+                </label>
+              </div>
             </CardContent>
           </Card>
 
