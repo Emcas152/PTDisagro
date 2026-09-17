@@ -26,9 +26,9 @@ export default function ConfirmationVoucher({
   const [copied, setCopied] = useState(false)
   const [sendingEmail, setSendingEmail] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'voucher' | 'badge'>('badge')
 
   useEffect(() => {
-    // Lanzar confeti corporativo de confirmación
     try {
       confetti({
         particleCount: 75,
@@ -37,7 +37,7 @@ export default function ConfirmationVoucher({
         colors: ['#2e7d32', '#4caf50', '#81c784', '#1565c0'],
       })
     } catch {
-      // Ignorar en entornos sin soporte canvas
+      // Ignorar en entornos sin canvas
     }
 
     if (typeof window !== 'undefined') {
@@ -64,7 +64,7 @@ export default function ConfirmationVoucher({
     setSendingEmail(true)
     try {
       await api.resendRegistrationEmail(registration.confirmationCode)
-      setToastMessage('¡Confirmación enviada exitosamente al correo!')
+      setToastMessage('¡Confirmación completa enviada exitosamente al correo!')
     } catch (err: any) {
       setToastMessage(err.message || 'No se pudo reenviar el correo.')
     } finally {
@@ -83,12 +83,18 @@ export default function ConfirmationVoucher({
 
   return (
     <div className='max-w-3xl mx-auto space-y-6 py-6 print:py-0 print:space-y-0'>
-      {/* Estilos CSS específicos para impresión nítida */}
+      {/* Estilos CSS de impresión específicos para el Gafete Oficial */}
       <style jsx global>{`
         @media print {
+          @page {
+            size: portrait;
+            margin: 0;
+          }
           body {
             background-color: #ffffff !important;
             color: #000000 !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
           header,
           footer,
@@ -96,17 +102,24 @@ export default function ConfirmationVoucher({
           .no-print {
             display: none !important;
           }
-          #printable-voucher {
+          .print-badge-container {
+            display: flex !important;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background: #ffffff !important;
+          }
+          #printable-badge {
+            display: block !important;
+            width: 380px !important;
+            height: 570px !important;
+            border: 3px solid #2e7d32 !important;
+            border-radius: 16px !important;
             box-shadow: none !important;
-            border: 2px solid #2e7d32 !important;
-            margin: 0 !important;
-            width: 100% !important;
-            max-width: 100% !important;
             background: #ffffff !important;
             page-break-inside: avoid !important;
-          }
-          .print-black-text {
-            color: #000000 !important;
+            overflow: hidden !important;
           }
         }
       `}</style>
@@ -117,17 +130,17 @@ export default function ConfirmationVoucher({
           <i className='ri-checkbox-circle-line text-3xl' />
         </div>
         <h2 className='text-2xl font-black text-gray-900 dark:text-white tracking-tight'>
-          ¡Asistencia y Portafolio Confirmados!
+          ¡Registro Confirmado Exitosamente!
         </h2>
         <p className='text-sm text-gray-600 dark:text-gray-300 mt-1 max-w-lg mx-auto'>
-          Hemos preparado su cotización promocional exclusiva. Se ha enviado un
-          correo de confirmación con este resumen a{' '}
-          <strong>{registration.customer?.email}</strong>.
+          Se ha enviado el desglose completo de su cotización a{' '}
+          <strong>{registration.customer?.email}</strong>. Imprima su{' '}
+          <strong>Gafete de Acreditación Oficial</strong> para ingresar al evento.
         </p>
 
         <div className='mt-4 flex flex-wrap items-center justify-center gap-2 text-xs'>
           <span className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200 font-medium'>
-            <i className='ri-mail-check-line text-sm' /> Confirmación enviada al correo
+            <i className='ri-mail-check-line text-sm' /> Correo completo enviado
           </span>
           <Button
             size='small'
@@ -146,300 +159,294 @@ export default function ConfirmationVoucher({
                 <CircularProgress size={12} sx={{ mr: 1 }} color='inherit' /> Reenviando...
               </>
             ) : (
-              'Reenviar Correo'
+              'Reenviar Correo Completo'
             )}
           </Button>
         </div>
       </div>
 
-      {/* Voucher Oficial Imprimible */}
-      <Card
-        id='printable-voucher'
-        className='border border-borderColor rounded-2xl shadow-xl overflow-hidden bg-backgroundPaper print:border-2 print:border-emerald-700 print:rounded-lg'
-      >
-        {/* Encabezado Corporativo del Voucher */}
-        <div className='bg-[#24292e] text-white p-6 flex items-center justify-between print:bg-[#1b5e20] print:text-white'>
-          <div className='flex items-center space-x-3'>
-            <div className='w-11 h-11 rounded-xl bg-[#2e7d32] flex items-center justify-center font-black text-white text-2xl shadow-sm'>
-              D
-            </div>
-            <div>
-              <div className='flex items-center gap-2'>
-                <h3 className='font-extrabold text-xl text-white tracking-tight'>
-                  DISAGRO
-                </h3>
-                <span className='text-[10px] bg-white/20 text-white font-bold px-2 py-0.5 rounded'>
-                  2026
-                </span>
-              </div>
-              <p className='text-xs text-gray-300 font-medium'>
-                Comprobante y Voucher Oficial de Registro Promocional
-              </p>
-            </div>
-          </div>
-          <div className='text-right'>
-            <span className='text-[10px] text-gray-400 block uppercase tracking-wider'>
-              Estado de Asistencia
-            </span>
-            <span className='text-xs font-bold text-emerald-400 uppercase tracking-widest bg-emerald-950/60 px-2.5 py-1 rounded border border-emerald-500/30'>
-              {registration.status || 'CONFIRMADO'}
-            </span>
-          </div>
-        </div>
+      {/* Pestañas de Navegación en Pantalla: Gafete de Acceso vs Detalle de Cotización */}
+      <div className='no-print flex items-center justify-center gap-2 bg-actionHover p-1.5 rounded-xl border border-borderColor max-w-md mx-auto'>
+        <button
+          onClick={() => setActiveTab('badge')}
+          className={`flex-1 py-2 px-4 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+            activeTab === 'badge'
+              ? 'bg-[#2e7d32] text-white shadow-xs'
+              : 'text-textSecondary hover:text-textPrimary'
+          }`}
+        >
+          <i className='ri-id-card-line text-base' /> Gafete de Acceso (Imprimible)
+        </button>
 
-        {/* Sección Destacada con QR y Código de Confirmación */}
-        <div className='p-6 bg-actionHover/50 border-b border-borderColor print:bg-white print:border-b-2 print:border-gray-200'>
-          <div className='flex flex-col sm:flex-row items-center justify-between gap-6'>
-            {/* Contenedor del Código QR */}
-            <div className='flex items-center gap-4'>
-              <div className='p-2.5 bg-white rounded-xl border border-gray-200 shadow-sm print:shadow-none print:border-2 print:border-gray-800 flex items-center justify-center'>
+        <button
+          onClick={() => setActiveTab('voucher')}
+          className={`flex-1 py-2 px-4 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+            activeTab === 'voucher'
+              ? 'bg-[#2e7d32] text-white shadow-xs'
+              : 'text-textSecondary hover:text-textPrimary'
+          }`}
+        >
+          <i className='ri-file-text-line text-base' /> Detalle de Cotización
+        </button>
+      </div>
+
+      {/* ==================================================================== */}
+      {/* VISTA Y SECCIÓN IMPRIMIBLE: GAFETE OFICIAL DE ACREDITACIÓN           */}
+      {/* ==================================================================== */}
+      <div className={`print-badge-container ${activeTab === 'badge' ? 'block' : 'hidden print:block'}`}>
+        <div
+          id='printable-badge'
+          className='w-[380px] mx-auto border-4 border-[#2e7d32] rounded-3xl shadow-2xl overflow-hidden bg-white text-gray-900 relative my-4 print:my-0'
+        >
+          {/* Ranura/Guía para Cinta Colgante o Clip del Gafete */}
+          <div className='pt-3 pb-1 bg-[#1b5e20] flex justify-center items-center'>
+            <div className='w-14 h-2.5 bg-black/40 rounded-full border border-white/30' />
+          </div>
+
+          {/* Banner de Encabezado Corporativo Disagro */}
+          <div className='bg-gradient-to-r from-[#2e7d32] to-[#1b5e20] text-white p-4 text-center border-b-2 border-emerald-400/40 relative'>
+            <div className='flex items-center justify-center space-x-2 mb-1'>
+              <div className='w-8 h-8 rounded-lg bg-white text-[#2e7d32] flex items-center justify-center font-black text-xl shadow-xs'>
+                D
+              </div>
+              <span className='font-black text-2xl tracking-tight text-white'>DISAGRO</span>
+            </div>
+            <span className='text-[11px] font-extrabold uppercase tracking-widest text-emerald-100 block'>
+              FERIA CORPORATIVA 2026
+            </span>
+            <div className='mt-2 inline-block bg-white/20 text-white text-[10px] font-black uppercase px-3 py-0.5 rounded-full border border-white/30'>
+              GAFETE OFICIAL DE ACREDITACIÓN
+            </div>
+          </div>
+
+          {/* Cuerpo Principal del Gafete */}
+          <div className='p-6 text-center space-y-4 bg-white'>
+            {/* Nombre Completo del Participante */}
+            <div>
+              <span className='text-[10px] text-gray-500 uppercase tracking-widest font-bold block mb-1'>
+                Participante Acreditado
+              </span>
+              <h3 className='text-2xl font-black text-gray-900 tracking-tight leading-tight uppercase'>
+                {registration.customer?.fullName}
+              </h3>
+            </div>
+
+            {/* Empresa y Cargo */}
+            {(registration.customer?.company || registration.customer?.jobTitle) && (
+              <div className='bg-gray-100 p-2.5 rounded-xl border border-gray-200'>
+                <span className='text-xs font-bold text-gray-800 block'>
+                  {registration.customer?.company || 'Independiente'}
+                </span>
+                {registration.customer?.jobTitle && (
+                  <span className='text-[11px] text-gray-600 block italic'>
+                    {registration.customer.jobTitle}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Fecha de Asistencia */}
+            <div className='flex items-center justify-center gap-1.5 text-xs font-bold text-[#2e7d32] bg-emerald-50 py-1.5 px-3 rounded-lg border border-emerald-200'>
+              <i className='ri-calendar-check-line text-sm' />
+              <span>{attendanceDateFormatted}</span>
+            </div>
+
+            {/* Código QR de Acceso Rápido */}
+            <div className='py-2 flex flex-col items-center justify-center'>
+              <div className='p-3 bg-white border-2 border-gray-900 rounded-2xl shadow-sm'>
                 {voucherUrl ? (
-                  <QRCodeSVG
-                    value={voucherUrl}
-                    size={110}
-                    level='M'
-                    includeMargin={false}
-                  />
+                  <QRCodeSVG value={voucherUrl} size={145} level='M' includeMargin={false} />
                 ) : (
-                  <div className='w-[110px] h-[110px] bg-gray-100 flex items-center justify-center text-xs text-gray-400'>
+                  <div className='w-[145px] h-[145px] bg-gray-100 flex items-center justify-center text-xs text-gray-400'>
                     Cargando QR...
                   </div>
                 )}
               </div>
 
-              <div className='space-y-1 text-center sm:text-left'>
-                <span className='text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 block'>
-                  Código QR de Verificación
-                </span>
-                <p className='text-xs text-textSecondary max-w-xs'>
-                  Escanee este código con la cámara de un teléfono o lector para
-                  acceder instantáneamente a la versión digital y validar la
-                  autenticidad en la entrada de la feria.
-                </p>
-                <span className='text-[10px] text-textDisabled font-mono block'>
-                  Verificación: {registration.id?.slice(0, 12)}...
-                </span>
-              </div>
+              {/* Código Único */}
+              <span className='mt-2 font-mono font-black text-lg tracking-widest text-gray-900 bg-gray-100 px-3 py-1 rounded-lg border border-gray-300 block'>
+                {registration.confirmationCode}
+              </span>
+              <span className='text-[9px] text-gray-500 uppercase tracking-wider block mt-1'>
+                Escanee en torniquetes o entrada principal
+              </span>
             </div>
 
-            {/* Código Único de Registro */}
-            <div className='flex flex-col items-center sm:items-end space-y-1.5'>
-              <span className='text-xs font-bold text-textSecondary uppercase tracking-wider'>
-                Código Único de Confirmación
-              </span>
-              <div className='flex items-center space-x-2'>
-                <span className='text-2xl sm:text-3xl font-mono font-black text-textPrimary tracking-widest bg-backgroundPaper px-4 py-2 rounded-xl border-2 border-emerald-600/40 shadow-inner print:text-black print:border-black'>
-                  {registration.confirmationCode}
-                </span>
-                <Tooltip title={copied ? 'Copiado' : 'Copiar código'}>
-                  <Button
-                    size='small'
-                    variant='outlined'
-                    onClick={copyCodeToClipboard}
-                    className='no-print'
-                    sx={{
-                      minWidth: 42,
-                      height: 42,
-                      borderColor: 'var(--mui-palette-divider)',
-                      color: 'var(--mui-palette-text-primary)',
-                    }}
-                  >
-                    <i
-                      className={
-                        copied
-                          ? 'ri-check-line text-lg text-emerald-500'
-                          : 'ri-file-copy-line text-lg'
-                      }
-                    />
-                  </Button>
-                </Tooltip>
-              </div>
-              <span className='text-[10px] text-textSecondary'>
-                Presente este código en el mostrador de registro
-              </span>
+            {/* Pie del Gafete */}
+            <div className='border-t border-gray-200 pt-3 text-[9px] text-gray-500 leading-tight'>
+              Válido para ingreso a salas de exhibición y canje de beneficios promocionales Disagro 2026.
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Contenido Principal del Comprobante */}
-        <CardContent className='p-6 space-y-6 bg-backgroundPaper text-textPrimary print:bg-white print:text-black'>
-          {/* Ficha del Participante */}
-          <div>
-            <h4 className='text-xs font-black uppercase tracking-wider text-textSecondary mb-3 flex items-center gap-1.5'>
-              <i className='ri-user-follow-line text-sm text-emerald-600' />
-              Datos del Participante y Asistencia
-            </h4>
-
-            <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-actionHover border border-borderColor text-xs print:bg-white print:border-gray-300'>
+      {/* ==================================================================== */}
+      {/* VISTA EN PANTALLA: DETALLE COMPLETO DE COTIZACIÓN                    */}
+      {/* ==================================================================== */}
+      <div className={`no-print space-y-6 ${activeTab === 'voucher' ? 'block' : 'hidden'}`}>
+        <Card className='border border-borderColor rounded-2xl shadow-lg overflow-hidden bg-backgroundPaper'>
+          {/* Header del Voucher */}
+          <div className='bg-[#24292e] text-white p-6 flex items-center justify-between'>
+            <div className='flex items-center space-x-3'>
+              <div className='w-10 h-10 rounded-xl bg-[#2e7d32] flex items-center justify-center font-black text-white text-xl'>
+                D
+              </div>
               <div>
-                <span className='text-textSecondary block'>Nombre Completo:</span>
-                <strong className='text-textPrimary font-bold text-sm block print-black-text'>
-                  {registration.customer?.fullName}
-                </strong>
+                <h3 className='font-bold text-lg text-white'>DISAGRO 2026</h3>
+                <p className='text-xs text-gray-300'>Comprobante de Cotización Promocional</p>
               </div>
-
-              <div>
-                <span className='text-textSecondary block'>Correo Electrónico:</span>
-                <strong className='text-textPrimary font-bold text-sm block print-black-text'>
-                  {registration.customer?.email}
-                </strong>
-              </div>
-
-              <div>
-                <span className='text-textSecondary block'>Teléfono / Celular:</span>
-                <strong className='text-textPrimary font-semibold text-xs block print-black-text'>
-                  {registration.customer?.phone}
-                </strong>
-              </div>
-
-              <div>
-                <span className='text-textSecondary block'>Empresa / Puesto:</span>
-                <strong className='text-textPrimary font-semibold text-xs block print-black-text'>
-                  {registration.customer?.company || 'Independiente'}{' '}
-                  {registration.customer?.jobTitle
-                    ? `(${registration.customer.jobTitle})`
-                    : ''}
-                </strong>
-              </div>
-
-              <div className='sm:col-span-2 pt-2 border-t border-borderColor print:border-gray-300 flex items-center justify-between'>
-                <span className='text-textSecondary'>Fecha Programada de Asistencia:</span>
-                <strong className='text-emerald-700 dark:text-emerald-400 font-bold text-xs uppercase print:text-black'>
-                  {attendanceDateFormatted}
-                </strong>
-              </div>
+            </div>
+            <div className='text-right'>
+              <span className='text-[10px] text-gray-400 block uppercase tracking-wider'>Estado</span>
+              <span className='text-xs font-bold text-emerald-400 uppercase tracking-wider bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30'>
+                {registration.status || 'CONFIRMADO'}
+              </span>
             </div>
           </div>
 
-          <Divider className='border-borderColor print:border-gray-300' />
-
-          {/* Resumen Completo de Ítems Solicitados */}
-          <div>
-            <div className='flex items-center justify-between mb-2'>
-              <h4 className='text-xs font-black uppercase tracking-wider text-textSecondary flex items-center gap-1.5'>
-                <i className='ri-shopping-bag-3-line text-sm text-emerald-600' />
-                Resumen de lo Solicitado ({registration.items?.length || 0} ítems)
+          <CardContent className='p-6 space-y-6 bg-backgroundPaper text-textPrimary'>
+            {/* Datos del Cliente */}
+            <div>
+              <h4 className='text-xs font-black uppercase tracking-wider text-textSecondary mb-3 flex items-center gap-1.5'>
+                <i className='ri-user-follow-line text-sm text-emerald-600' />
+                Datos del Participante
               </h4>
-              <span className='text-[11px] text-textSecondary font-mono'>
-                Moneda: Quetzales (GTQ)
-              </span>
+
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-actionHover border border-borderColor text-xs'>
+                <div>
+                  <span className='text-textSecondary block'>Nombre Completo:</span>
+                  <strong className='text-textPrimary font-bold text-sm block'>
+                    {registration.customer?.fullName}
+                  </strong>
+                </div>
+
+                <div>
+                  <span className='text-textSecondary block'>Correo Electrónico:</span>
+                  <strong className='text-textPrimary font-bold text-sm block'>
+                    {registration.customer?.email}
+                  </strong>
+                </div>
+
+                <div>
+                  <span className='text-textSecondary block'>Teléfono / Celular:</span>
+                  <strong className='text-textPrimary font-semibold text-xs block'>
+                    {registration.customer?.phone}
+                  </strong>
+                </div>
+
+                <div>
+                  <span className='text-textSecondary block'>Empresa / Puesto:</span>
+                  <strong className='text-textPrimary font-semibold text-xs block'>
+                    {registration.customer?.company || 'Independiente'}{' '}
+                    {registration.customer?.jobTitle ? `(${registration.customer.jobTitle})` : ''}
+                  </strong>
+                </div>
+              </div>
             </div>
 
-            <div className='border border-borderColor rounded-xl overflow-hidden print:border-gray-400'>
-              <table className='w-full text-xs text-left'>
-                <thead className='bg-actionHover text-textSecondary font-bold border-b border-borderColor print:bg-gray-100 print:text-black'>
-                  <tr>
-                    <th className='p-3'>Ítem / Solicitud</th>
-                    <th className='p-3 text-center'>Tipo</th>
-                    <th className='p-3 text-center'>Cant.</th>
-                    <th className='p-3 text-right'>Precio Unit.</th>
-                    <th className='p-3 text-right'>Total</th>
-                  </tr>
-                </thead>
-                <tbody className='divide-y divide-borderColor print:divide-gray-300'>
-                  {registration.items?.map((item: any, idx: number) => (
-                    <tr
-                      key={item.id || idx}
-                      className='hover:bg-actionHover/50 print:bg-white'
-                    >
-                      <td className='p-3 font-medium text-textPrimary print-black-text'>
-                        <div className='font-bold'>{item.nameSnapshot}</div>
-                        {item.catalogItem?.category && (
-                          <span className='text-[10px] text-textSecondary block'>
-                            Cat: {item.catalogItem.category}
-                          </span>
-                        )}
-                      </td>
-                      <td className='p-3 text-center'>
-                        <span
-                          className={`text-[9px] uppercase px-2 py-0.5 rounded font-bold ${
-                            item.itemType === 'SERVICE'
-                              ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 print:text-black print:border print:border-gray-400'
-                              : 'bg-blue-500/15 text-blue-600 dark:text-blue-400 print:text-black print:border print:border-gray-400'
-                          }`}
-                        >
-                          {item.itemType === 'SERVICE' ? 'Servicio' : 'Producto'}
-                        </span>
-                      </td>
-                      <td className='p-3 text-center font-bold text-textPrimary print-black-text'>
-                        {item.quantity}
-                      </td>
-                      <td className='p-3 text-right text-textSecondary print-black-text'>
-                        Q. {Number(item.unitPriceSnapshot).toFixed(2)}
-                      </td>
-                      <td className='p-3 text-right font-black text-textPrimary print-black-text'>
-                        Q. {Number(item.lineTotal).toFixed(2)}
-                      </td>
+            <Divider className='border-borderColor' />
+
+            {/* Tabla Completa de Ítems Solicitados */}
+            <div>
+              <div className='flex items-center justify-between mb-2'>
+                <h4 className='text-xs font-black uppercase tracking-wider text-textSecondary flex items-center gap-1.5'>
+                  <i className='ri-shopping-bag-3-line text-sm text-emerald-600' />
+                  Resumen de Portafolio Solicitado ({registration.items?.length || 0} ítems)
+                </h4>
+                <span className='text-[11px] text-textSecondary font-mono'>Moneda: Quetzales (GTQ)</span>
+              </div>
+
+              <div className='border border-borderColor rounded-xl overflow-hidden'>
+                <table className='w-full text-xs text-left'>
+                  <thead className='bg-actionHover text-textSecondary font-bold border-b border-borderColor'>
+                    <tr>
+                      <th className='p-3'>Ítem</th>
+                      <th className='p-3 text-center'>Tipo</th>
+                      <th className='p-3 text-center'>Cant.</th>
+                      <th className='p-3 text-right'>Precio Unit.</th>
+                      <th className='p-3 text-right'>Total</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <Divider className='border-borderColor print:border-gray-300' />
-
-          {/* Desglose Financiero y Descuentos */}
-          <div className='bg-actionHover/70 rounded-xl p-5 space-y-2.5 text-xs border border-borderColor print:bg-white print:border-gray-400'>
-            <div className='flex justify-between text-textSecondary print-black-text'>
-              <span>Subtotal Servicios Solicitados:</span>
-              <span className='font-semibold text-textPrimary print-black-text'>
-                Q. {Number(registration.serviceSubtotal).toFixed(2)}
-              </span>
-            </div>
-
-            <div className='flex justify-between text-textSecondary print-black-text'>
-              <span>Subtotal Productos e Insumos Solicitados:</span>
-              <span className='font-semibold text-textPrimary print-black-text'>
-                Q. {Number(registration.productSubtotal).toFixed(2)}
-              </span>
-            </div>
-
-            <div className='flex justify-between text-emerald-600 dark:text-emerald-400 font-semibold print-black-text'>
-              <span>
-                Descuento Promocional en Servicios ({registration.serviceDiscountPercentage}%):
-              </span>
-              <span>- Q. {Number(registration.serviceDiscountAmount).toFixed(2)}</span>
-            </div>
-
-            <div className='flex justify-between text-blue-600 dark:text-blue-400 font-semibold print-black-text'>
-              <span>
-                Descuento Promocional en Productos ({registration.productDiscountPercentage}%):
-              </span>
-              <span>- Q. {Number(registration.productDiscountAmount).toFixed(2)}</span>
+                  </thead>
+                  <tbody className='divide-y divide-borderColor'>
+                    {registration.items?.map((item: any, idx: number) => (
+                      <tr key={item.id || idx} className='hover:bg-actionHover/50'>
+                        <td className='p-3 font-medium text-textPrimary'>
+                          <div className='font-bold'>{item.nameSnapshot}</div>
+                        </td>
+                        <td className='p-3 text-center'>
+                          <span
+                            className={`text-[9px] uppercase px-2 py-0.5 rounded font-bold ${
+                              item.itemType === 'SERVICE'
+                                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                                : 'bg-blue-500/15 text-blue-600 dark:text-blue-400'
+                            }`}
+                          >
+                            {item.itemType === 'SERVICE' ? 'Servicio' : 'Producto'}
+                          </span>
+                        </td>
+                        <td className='p-3 text-center font-bold text-textPrimary'>{item.quantity}</td>
+                        <td className='p-3 text-right text-textSecondary'>
+                          Q. {Number(item.unitPriceSnapshot).toFixed(2)}
+                        </td>
+                        <td className='p-3 text-right font-black text-textPrimary'>
+                          Q. {Number(item.lineTotal).toFixed(2)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
-            <div className='flex justify-between text-emerald-700 dark:text-emerald-400 font-extrabold border-t border-borderColor pt-2 text-sm print-black-text'>
-              <span>Ahorro Total Obtenido en la Feria:</span>
-              <span>Q. {Number(registration.totalDiscountAmount).toFixed(2)}</span>
+            <Divider className='border-borderColor' />
+
+            {/* Totales y Descuentos */}
+            <div className='bg-actionHover/70 rounded-xl p-5 space-y-2.5 text-xs border border-borderColor'>
+              <div className='flex justify-between text-textSecondary'>
+                <span>Subtotal Servicios:</span>
+                <span className='font-semibold text-textPrimary'>
+                  Q. {Number(registration.serviceSubtotal).toFixed(2)}
+                </span>
+              </div>
+
+              <div className='flex justify-between text-textSecondary'>
+                <span>Subtotal Productos:</span>
+                <span className='font-semibold text-textPrimary'>
+                  Q. {Number(registration.productSubtotal).toFixed(2)}
+                </span>
+              </div>
+
+              <div className='flex justify-between text-emerald-600 dark:text-emerald-400 font-semibold'>
+                <span>
+                  Descuento en Servicios ({registration.serviceDiscountPercentage}%):
+                </span>
+                <span>- Q. {Number(registration.serviceDiscountAmount).toFixed(2)}</span>
+              </div>
+
+              <div className='flex justify-between text-blue-600 dark:text-blue-400 font-semibold'>
+                <span>
+                  Descuento en Productos ({registration.productDiscountPercentage}%):
+                </span>
+                <span>- Q. {Number(registration.productDiscountAmount).toFixed(2)}</span>
+              </div>
+
+              <div className='flex justify-between text-emerald-700 dark:text-emerald-400 font-extrabold border-t border-borderColor pt-2 text-sm'>
+                <span>Ahorro Total Obtenido:</span>
+                <span>Q. {Number(registration.totalDiscountAmount).toFixed(2)}</span>
+              </div>
+
+              <div className='flex justify-between items-center text-sm font-black text-textPrimary border-t-2 border-borderColor pt-3'>
+                <span className='text-base'>Total Estimado a Invertir:</span>
+                <span className='text-2xl font-black text-emerald-600 dark:text-emerald-400'>
+                  Q. {Number(registration.estimatedTotal).toFixed(2)}
+                </span>
+              </div>
             </div>
+          </CardContent>
+        </Card>
+      </div>
 
-            <div className='flex justify-between items-center text-sm font-black text-textPrimary border-t-2 border-borderColor pt-3 print:border-black print-black-text'>
-              <span className='text-base'>Total Final Estimado a Invertir:</span>
-              <span className='text-2xl font-black text-emerald-600 dark:text-emerald-400 print:text-black'>
-                Q. {Number(registration.estimatedTotal).toFixed(2)}
-              </span>
-            </div>
-          </div>
-
-          {/* Notas Legales e Instrucciones para el Evento */}
-          <div className='pt-2 text-[10px] text-textSecondary leading-relaxed print:text-black border-t border-borderColor'>
-            <p className='font-bold mb-0.5'>Condiciones de Validez:</p>
-            <p>
-              1. Este comprobante no constituye factura fiscal obligatoria; es
-              una cotización oficial con precios y descuentos preferenciales
-              reservados para la Feria Disagro 2026.
-            </p>
-            <p>
-              2. Los descuentos y disponibilidad de inventario se garantizan
-              al presentar este voucher físico o el código QR digital en el
-              módulo de bienvenida del evento.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Botones de Acción (Ocultos al Imprimir) */}
+      {/* Botones de Acción Global (Ocultos al Imprimir) */}
       <div className='no-print flex flex-col sm:flex-row gap-3 items-center justify-between pt-2'>
         <Button
           variant='outlined'
@@ -479,7 +486,7 @@ export default function ConfirmationVoucher({
               )
             }
           >
-            {sendingEmail ? 'Enviando...' : 'Reenviar al Correo'}
+            {sendingEmail ? 'Enviando...' : 'Reenviar Correo Completo'}
           </Button>
 
           <Button
@@ -495,7 +502,7 @@ export default function ConfirmationVoucher({
             }}
             startIcon={<i className='ri-printer-line' />}
           >
-            Descargar / Imprimir Voucher con QR
+            Imprimir Gafete de Acceso
           </Button>
         </div>
       </div>
