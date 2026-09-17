@@ -111,33 +111,9 @@ export default function ValidarQrPage() {
     }
   }
 
-  // Cargar lista de cámaras disponibles al montar
+  // Limpiar lector al desmontar
   useEffect(() => {
-    let isMounted = true
-
-    async function initCameras() {
-      try {
-        const { Html5Qrcode } = await import('html5-qrcode')
-        const devices = await Html5Qrcode.getCameras()
-        if (isMounted && devices && devices.length > 0) {
-          setCameras(devices)
-          const backCam = devices.find(
-            (d) =>
-              d.label.toLowerCase().includes('back') ||
-              d.label.toLowerCase().includes('trasera') ||
-              d.label.toLowerCase().includes('environment'),
-          )
-          setSelectedCameraId(backCam ? backCam.id : devices[0].id)
-        }
-      } catch (err) {
-        console.warn('Cámaras no detectadas inicialmente:', err)
-      }
-    }
-
-    initCameras()
-
     return () => {
-      isMounted = false
       stopScanner()
     }
   }, [])
@@ -162,72 +138,78 @@ export default function ValidarQrPage() {
         }
       }
 
-      // 1. Obtener cámaras disponibles
-      let availableCameras = cameras
-      try {
-        const devices = await Html5Qrcode.getCameras()
-        if (devices && devices.length > 0) {
-          availableCameras = devices
-          setCameras(devices)
-        }
-      } catch (camErr) {
-        console.warn('No se pudo listar cámaras con getCameras:', camErr)
-      }
-
-      // 2. Determinar la cámara o configuración a usar
-      let camToUse: any = ''
-      if (cameraId) {
-        camToUse = cameraId
-      } else if (selectedCameraId) {
-        camToUse = selectedCameraId
-      } else if (availableCameras.length > 0) {
-        const backCam = availableCameras.find(
-          (d) =>
-            d.label.toLowerCase().includes('back') ||
-            d.label.toLowerCase().includes('trasera') ||
-            d.label.toLowerCase().includes('environment'),
+      const isMobile =
+        typeof navigator !== 'undefined' &&
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent,
         )
-        const chosen = backCam ? backCam.id : availableCameras[0].id
-        setSelectedCameraId(chosen)
-        camToUse = chosen
-      } else {
-        // En laptops y escritorios sin deviceId, pedir cámara sin restringir a 'environment'
-        camToUse = { facingMode: 'user' }
-      }
+
+      // Configuración directa de cámara: en laptop 'user', en móvil 'environment'
+      // Esto evita llamar a getCameras() antes de tiempo, previniendo el conflicto de hardware en Windows (NotReadableError)
+      const cameraConfig = cameraId
+        ? { deviceId: { exact: cameraId } }
+        : isMobile
+          ? { facingMode: 'environment' }
+          : { facingMode: 'user' }
 
       const html5QrCode = new Html5Qrcode(scannerContainerId)
       html5QrCodeRef.current = html5QrCode
 
       const config = {
-        fps: 15,
+        fps: 10,
         qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
           const edge = Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.75)
-          return { width: Math.max(edge, 180), height: Math.max(edge, 180) }
+          return { width: Math.max(edge, 160), height: Math.max(edge, 160) }
         },
       }
 
-      await html5QrCode.start(
-        camToUse,
-        config,
-        (decodedText) => {
-          // Código QR escaneado con éxito
-          playSuccessBeep()
-          stopScanner()
-          const code = extractConfirmationCode(decodedText)
-          setManualCode(code)
-          handleSearch(code)
-        },
-        () => {
-          // Frame sin QR (ignorar errores de frame)
-        },
-      )
+      // Iniciar con reintento automático si el driver de la webcam tarda en responder
+      const startWithRetry = async (cfg: any, isRetry = false): Promise<void> => {
+        try {
+          await html5QrCode.start(
+            cfg,
+            config,
+            (decodedText) => {
+              playSuccessBeep()
+              stopScanner()
+              const code = extractConfirmationCode(decodedText)
+              setManualCode(code)
+              handleSearch(code)
+            },
+            () => {
+              // Frame sin QR (ignorar)
+            },
+          )
+        } catch (err: any) {
+          if (!isRetry && (err?.name === 'NotReadableError' || String(err).includes('NotReadableError'))) {
+            await new Promise((resolve) => setTimeout(resolve, 700))
+            return startWithRetry(cfg, true)
+          }
+          throw err
+        }
+      }
+
+      await startWithRetry(cameraConfig)
+
+      // Una vez que la cámara ya está activa y con permisos, listar dispositivos para el selector
+      try {
+        const devices = await Html5Qrcode.getCameras()
+        if (devices && devices.length > 0) {
+          setCameras(devices)
+          if (cameraId) {
+            setSelectedCameraId(cameraId)
+          }
+        }
+      } catch {
+        // Ignorar si no se pueden listar
+      }
 
       setScannerActive(true)
     } catch (err: any) {
       console.error('Error al iniciar la cámara:', err)
       const msg = err?.message || String(err)
       setCameraError(
-        `Error al iniciar cámara: ${msg}. Si la cámara está en uso por otra app (Zoom, Teams, etc.), ciérrela e intente de nuevo.`,
+        `Error al iniciar cámara: ${msg}. Por favor use la opción "Cargar Imagen QR" o "Búsqueda Manual".`,
       )
       setScannerActive(false)
     }
