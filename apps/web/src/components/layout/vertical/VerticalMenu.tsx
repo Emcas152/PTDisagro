@@ -72,6 +72,9 @@ const VerticalMenu = ({
           <MenuItem href='/dashboard' icon={<i className='ri-dashboard-line' />}>
             Dashboard General
           </MenuItem>
+          <MenuItem href='/validar-qr' icon={<i className='ri-qr-scan-2-line' />}>
+            Escanear QR / Acreditación
+          </MenuItem>
           <MenuItem href='/registros' icon={<i className='ri-user-follow-line' />}>
             Participantes y Registros
           </MenuItem>

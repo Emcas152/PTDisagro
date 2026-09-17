@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import Link from 'next/link'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
@@ -109,20 +110,38 @@ export default function RegistrosPage() {
           </p>
         </div>
 
-        <Button
-          variant='contained'
-          onClick={handleExportCsv}
-          sx={{
-            backgroundColor: '#2e7d32',
-            textTransform: 'none',
-            fontWeight: 600,
-            borderRadius: '10px',
-            '&:hover': { backgroundColor: '#1b5e20' },
-          }}
-          startIcon={<i className='ri-file-excel-2-line' />}
-        >
-          Exportar a CSV
-        </Button>
+        <div className='flex flex-wrap items-center gap-3 w-full sm:w-auto'>
+          <Link href='/validar-qr'>
+            <Button
+              variant='contained'
+              sx={{
+                backgroundColor: '#1b5e20',
+                textTransform: 'none',
+                fontWeight: 700,
+                borderRadius: '10px',
+                '&:hover': { backgroundColor: '#0d3311' },
+              }}
+              startIcon={<i className='ri-qr-scan-2-line' />}
+            >
+              Escanear QR / Acreditar
+            </Button>
+          </Link>
+
+          <Button
+            variant='outlined'
+            onClick={handleExportCsv}
+            sx={{
+              borderColor: 'var(--mui-palette-divider)',
+              color: 'var(--mui-palette-text-primary)',
+              textTransform: 'none',
+              fontWeight: 600,
+              borderRadius: '10px',
+            }}
+            startIcon={<i className='ri-file-excel-2-line' />}
+          >
+            Exportar a CSV
+          </Button>
+        </div>
       </div>
 
       {/* Tarjeta de Filtros y Tabla */}
