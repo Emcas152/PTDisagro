@@ -121,7 +121,6 @@ export default function ValidarQrPage() {
         const devices = await Html5Qrcode.getCameras()
         if (isMounted && devices && devices.length > 0) {
           setCameras(devices)
-          // Preferir cámara trasera (back / environment) si existe
           const backCam = devices.find(
             (d) =>
               d.label.toLowerCase().includes('back') ||
@@ -131,7 +130,7 @@ export default function ValidarQrPage() {
           setSelectedCameraId(backCam ? backCam.id : devices[0].id)
         }
       } catch (err) {
-        console.warn('No se pudieron listar cámaras:', err)
+        console.warn('Cámaras no detectadas inicialmente:', err)
       }
     }
 
@@ -151,33 +150,64 @@ export default function ValidarQrPage() {
     try {
       const { Html5Qrcode } = await import('html5-qrcode')
 
-      // Si ya existía una instancia previa, limpiarla
+      // Si ya existía una instancia previa, limpiarla completamente
       if (html5QrCodeRef.current) {
         try {
-          await html5QrCodeRef.current.stop()
+          if (html5QrCodeRef.current.isScanning) {
+            await html5QrCodeRef.current.stop()
+          }
           html5QrCodeRef.current.clear()
         } catch {
           // Ignorar si no estaba corriendo
         }
       }
 
+      // 1. Obtener cámaras disponibles
+      let availableCameras = cameras
+      try {
+        const devices = await Html5Qrcode.getCameras()
+        if (devices && devices.length > 0) {
+          availableCameras = devices
+          setCameras(devices)
+        }
+      } catch (camErr) {
+        console.warn('No se pudo listar cámaras con getCameras:', camErr)
+      }
+
+      // 2. Determinar la cámara o configuración a usar
+      let camToUse: any = ''
+      if (cameraId) {
+        camToUse = cameraId
+      } else if (selectedCameraId) {
+        camToUse = selectedCameraId
+      } else if (availableCameras.length > 0) {
+        const backCam = availableCameras.find(
+          (d) =>
+            d.label.toLowerCase().includes('back') ||
+            d.label.toLowerCase().includes('trasera') ||
+            d.label.toLowerCase().includes('environment'),
+        )
+        const chosen = backCam ? backCam.id : availableCameras[0].id
+        setSelectedCameraId(chosen)
+        camToUse = chosen
+      } else {
+        // En laptops y escritorios sin deviceId, pedir cámara sin restringir a 'environment'
+        camToUse = { facingMode: 'user' }
+      }
+
       const html5QrCode = new Html5Qrcode(scannerContainerId)
       html5QrCodeRef.current = html5QrCode
 
-      const camIdToUse = cameraId || selectedCameraId
-
       const config = {
         fps: 15,
-        qrbox: { width: 260, height: 260 },
-        aspectRatio: 1.0,
+        qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+          const edge = Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.75)
+          return { width: Math.max(edge, 180), height: Math.max(edge, 180) }
+        },
       }
 
-      const cameraConfig = camIdToUse
-        ? { deviceId: { exact: camIdToUse } }
-        : { facingMode: 'environment' }
-
       await html5QrCode.start(
-        cameraConfig,
+        camToUse,
         config,
         (decodedText) => {
           // Código QR escaneado con éxito
@@ -195,8 +225,9 @@ export default function ValidarQrPage() {
       setScannerActive(true)
     } catch (err: any) {
       console.error('Error al iniciar la cámara:', err)
+      const msg = err?.message || String(err)
       setCameraError(
-        'No se pudo acceder a la cámara. Verifique los permisos en el navegador o use la búsqueda por código manual.',
+        `Error al iniciar cámara: ${msg}. Si la cámara está en uso por otra app (Zoom, Teams, etc.), ciérrela e intente de nuevo.`,
       )
       setScannerActive(false)
     }
