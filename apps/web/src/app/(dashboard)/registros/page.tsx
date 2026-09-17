@@ -15,6 +15,11 @@ import DialogActions from '@mui/material/DialogActions'
 import InputAdornment from '@mui/material/InputAdornment'
 import CircularProgress from '@mui/material/CircularProgress'
 import TablePagination from '@mui/material/TablePagination'
+import Snackbar from '@mui/material/Snackbar'
+import Alert from '@mui/material/Alert'
+import Tooltip from '@mui/material/Tooltip'
+import Divider from '@mui/material/Divider'
+import { QRCodeSVG } from 'qrcode.react'
 import { api } from '@/services/api'
 
 export default function RegistrosPage() {
@@ -26,9 +31,18 @@ export default function RegistrosPage() {
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [total, setTotal] = useState(0)
 
-  // Modal de detalle
+  // Modal de detalle y resumen
   const [selectedReg, setSelectedReg] = useState<any>(null)
   const [modalOpen, setModalOpen] = useState(false)
+  const [resendingEmail, setResendingEmail] = useState(false)
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [originUrl, setOriginUrl] = useState('')
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setOriginUrl(window.location.origin)
+    }
+  }, [])
 
   const loadData = async () => {
     setLoading(true)
@@ -62,6 +76,26 @@ export default function RegistrosPage() {
     setModalOpen(true)
   }
 
+  const handleResendEmail = async () => {
+    if (!selectedReg?.confirmationCode) return
+    setResendingEmail(true)
+    try {
+      await api.resendRegistrationEmail(selectedReg.confirmationCode)
+      setToastMessage(
+        `Confirmación reenviada con éxito al correo: ${selectedReg.customer?.email}`,
+      )
+    } catch (err: any) {
+      setToastMessage(err.message || 'No se pudo reenviar el correo.')
+    } finally {
+      setResendingEmail(false)
+    }
+  }
+
+  const handleOpenPublicVoucher = () => {
+    if (!selectedReg?.confirmationCode) return
+    window.open(`/resumen/${encodeURIComponent(selectedReg.confirmationCode)}`, '_blank')
+  }
+
   return (
     <div className='space-y-6'>
       {/* Encabezado con Botón de Exportar */}
@@ -71,7 +105,7 @@ export default function RegistrosPage() {
             Participantes y Confirmaciones
           </h1>
           <p className='text-sm text-textSecondary'>
-            Gestión de clientes registrados, selección de promociones y exportación de datos.
+            Gestión de clientes registrados, lectura de resumen de promociones y lectura de códigos QR.
           </p>
         </div>
 
@@ -82,6 +116,7 @@ export default function RegistrosPage() {
             backgroundColor: '#2e7d32',
             textTransform: 'none',
             fontWeight: 600,
+            borderRadius: '10px',
             '&:hover': { backgroundColor: '#1b5e20' },
           }}
           startIcon={<i className='ri-file-excel-2-line' />}
@@ -194,9 +229,21 @@ export default function RegistrosPage() {
                           size='small'
                           variant='outlined'
                           onClick={() => handleOpenDetail(r)}
-                          sx={{ textTransform: 'none', fontSize: '11px', padding: '2px 8px' }}
+                          sx={{
+                            textTransform: 'none',
+                            fontSize: '11px',
+                            padding: '3px 10px',
+                            borderRadius: '8px',
+                            color: '#2e7d32',
+                            borderColor: '#2e7d32',
+                            '&:hover': {
+                              borderColor: '#1b5e20',
+                              backgroundColor: 'rgba(46, 125, 50, 0.04)',
+                            },
+                          }}
+                          startIcon={<i className='ri-file-list-3-line' />}
                         >
-                          Ver Detalle
+                          Ver Resumen
                         </Button>
                       </td>
                     </tr>
@@ -229,102 +276,285 @@ export default function RegistrosPage() {
         </CardContent>
       </Card>
 
-      {/* Modal de Detalle de Registro */}
+      {/* Modal / Diálogo de Resumen Completo de Registro con QR */}
       {selectedReg && (
         <Dialog
           open={modalOpen}
           onClose={() => setModalOpen(false)}
-          maxWidth='sm'
+          maxWidth='md'
           fullWidth
-          PaperProps={{ className: 'rounded-2xl border border-borderColor bg-backgroundPaper' }}
+          PaperProps={{ className: 'rounded-2xl border border-borderColor bg-backgroundPaper overflow-hidden' }}
         >
-          <DialogTitle className='bg-[#24292e] text-white p-4 flex justify-between items-center'>
-            <span className='font-bold text-sm'>
-              Detalle: {selectedReg.confirmationCode}
-            </span>
-            <Chip
-              label={selectedReg.status}
-              size='small'
-              color='success'
-              sx={{ fontSize: '10px' }}
-            />
+          {/* Header del Modal */}
+          <DialogTitle className='bg-[#24292e] text-white p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2'>
+            <div className='flex items-center space-x-3'>
+              <div className='w-9 h-9 rounded-lg bg-[#2e7d32] flex items-center justify-center font-black text-white text-lg'>
+                D
+              </div>
+              <div>
+                <span className='font-bold text-base text-white block'>
+                  Resumen de Solicitud de Registro
+                </span>
+                <span className='text-xs text-gray-300 font-mono'>
+                  {selectedReg.confirmationCode}
+                </span>
+              </div>
+            </div>
+
+            <div className='flex items-center gap-2'>
+              <Chip
+                label={selectedReg.status}
+                size='small'
+                color='success'
+                sx={{ fontSize: '11px', fontWeight: 'bold' }}
+              />
+            </div>
           </DialogTitle>
 
-          <DialogContent className='p-5 space-y-4 text-xs'>
-            {/* Info Participante */}
-            <div className='bg-actionHover p-3 rounded-lg border border-borderColor space-y-1 text-textPrimary'>
-              <div>
-                <strong>Cliente:</strong> {selectedReg.customer?.fullName}
-              </div>
-              <div className='text-textSecondary'>
-                <strong>Correo:</strong> {selectedReg.customer?.email} |{' '}
-                <strong>Teléfono:</strong> {selectedReg.customer?.phone}
-              </div>
-              {selectedReg.customer?.company && (
-                <div className='text-textSecondary'>
-                  <strong>Empresa:</strong> {selectedReg.customer.company} (
-                  {selectedReg.customer.jobTitle})
+          <DialogContent className='p-6 space-y-5 text-xs'>
+            {/* Banner con Código QR y Resumen Rápido */}
+            <div className='flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-actionHover border border-borderColor'>
+              <div className='flex items-center gap-4'>
+                <div className='p-2 bg-white rounded-xl border border-gray-200 shadow-xs flex items-center justify-center'>
+                  <QRCodeSVG
+                    value={`${originUrl}/resumen/${encodeURIComponent(
+                      selectedReg.confirmationCode || '',
+                    )}`}
+                    size={90}
+                    level='M'
+                  />
                 </div>
-              )}
-              <div className='text-textSecondary'>
-                <strong>Fecha Asistencia:</strong>{' '}
-                {selectedReg.customer?.attendanceDate}
+                <div className='space-y-1 text-center sm:text-left'>
+                  <span className='text-[10px] font-bold uppercase tracking-wider text-emerald-600 block'>
+                    Código QR de Asistencia
+                  </span>
+                  <p className='text-xs text-textSecondary max-w-xs'>
+                    Escanear para acceder directamente a la cotización en línea o validar acreditación en taquilla.
+                  </p>
+                  <span className='text-[11px] font-mono font-bold text-textPrimary block'>
+                    {selectedReg.confirmationCode}
+                  </span>
+                </div>
+              </div>
+
+              {/* Botón para abrir el voucher público */}
+              <div className='flex flex-col gap-2 w-full sm:w-auto'>
+                <Button
+                  size='small'
+                  variant='contained'
+                  onClick={handleOpenPublicVoucher}
+                  sx={{
+                    backgroundColor: '#2e7d32',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    borderRadius: '8px',
+                    '&:hover': { backgroundColor: '#1b5e20' },
+                  }}
+                  startIcon={<i className='ri-external-link-line' />}
+                >
+                  Abrir / Imprimir Voucher
+                </Button>
+
+                <Button
+                  size='small'
+                  variant='outlined'
+                  onClick={handleResendEmail}
+                  disabled={resendingEmail}
+                  sx={{
+                    textTransform: 'none',
+                    borderRadius: '8px',
+                    borderColor: 'var(--mui-palette-divider)',
+                    color: 'var(--mui-palette-text-primary)',
+                  }}
+                  startIcon={
+                    resendingEmail ? (
+                      <CircularProgress size={12} color='inherit' />
+                    ) : (
+                      <i className='ri-mail-send-line' />
+                    )
+                  }
+                >
+                  {resendingEmail ? 'Reenviando...' : 'Reenviar al Correo'}
+                </Button>
               </div>
             </div>
 
-            {/* Lista de Ítems */}
+            {/* Ficha Completa del Participante */}
             <div>
-              <h4 className='font-bold text-textPrimary mb-2'>
-                Ítems Seleccionados ({selectedReg.items?.length || 0})
+              <h4 className='font-bold text-textPrimary text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5'>
+                <i className='ri-user-3-line text-emerald-600' />
+                Datos del Participante
               </h4>
-              <div className='space-y-1.5 max-h-48 overflow-y-auto border border-borderColor rounded-lg p-1'>
-                {selectedReg.items?.map((item: any) => (
-                  <div
-                    key={item.id}
-                    className='flex justify-between items-center p-2 rounded bg-actionHover text-xs'
-                  >
-                    <div>
-                      <span className='font-semibold text-textPrimary'>
-                        {item.nameSnapshot}
-                      </span>{' '}
-                      <span className='text-textSecondary'>(x{item.quantity})</span>
-                    </div>
-                    <span className='font-bold text-textPrimary'>
-                      Q. {Number(item.lineTotal).toFixed(2)}
-                    </span>
-                  </div>
-                ))}
+              <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 p-3.5 rounded-xl bg-actionHover border border-borderColor text-xs'>
+                <div>
+                  <span className='text-textSecondary block'>Nombre:</span>
+                  <strong className='text-textPrimary font-semibold text-xs'>
+                    {selectedReg.customer?.fullName}
+                  </strong>
+                </div>
+                <div>
+                  <span className='text-textSecondary block'>Correo:</span>
+                  <strong className='text-textPrimary font-semibold text-xs'>
+                    {selectedReg.customer?.email}
+                  </strong>
+                </div>
+                <div>
+                  <span className='text-textSecondary block'>Teléfono:</span>
+                  <strong className='text-textPrimary font-semibold text-xs'>
+                    {selectedReg.customer?.phone}
+                  </strong>
+                </div>
+                <div>
+                  <span className='text-textSecondary block'>Empresa:</span>
+                  <strong className='text-textPrimary font-semibold text-xs'>
+                    {selectedReg.customer?.company || 'No especificada'}
+                  </strong>
+                </div>
+                <div>
+                  <span className='text-textSecondary block'>Puesto / Cargo:</span>
+                  <strong className='text-textPrimary font-semibold text-xs'>
+                    {selectedReg.customer?.jobTitle || 'No especificado'}
+                  </strong>
+                </div>
+                <div>
+                  <span className='text-textSecondary block'>Fecha de Asistencia:</span>
+                  <strong className='text-emerald-600 font-bold text-xs'>
+                    {selectedReg.customer?.attendanceDate || 'Por confirmar'}
+                  </strong>
+                </div>
               </div>
             </div>
 
-            {/* Totales */}
-            <div className='bg-emerald-500/10 p-3 rounded-lg border border-emerald-500/20 space-y-1 text-xs'>
+            {/* Tabla Detallada del Resumen de lo Solicitado */}
+            <div>
+              <div className='flex items-center justify-between mb-2'>
+                <h4 className='font-bold text-textPrimary text-xs uppercase tracking-wider flex items-center gap-1.5'>
+                  <i className='ri-shopping-basket-line text-emerald-600' />
+                  Resumen de lo Solicitado ({selectedReg.items?.length || 0} ítems)
+                </h4>
+                <span className='text-[10px] text-textSecondary font-mono'>
+                  Valores en Quetzales (GTQ)
+                </span>
+              </div>
+
+              <div className='border border-borderColor rounded-xl overflow-hidden'>
+                <table className='w-full text-xs text-left'>
+                  <thead className='bg-actionHover text-textSecondary font-semibold border-b border-borderColor'>
+                    <tr>
+                      <th className='p-2.5'>Ítem Solicitado</th>
+                      <th className='p-2.5 text-center'>Tipo</th>
+                      <th className='p-2.5 text-center'>Cant.</th>
+                      <th className='p-2.5 text-right'>Precio Unit.</th>
+                      <th className='p-2.5 text-right'>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody className='divide-y divide-borderColor'>
+                    {selectedReg.items?.map((item: any) => (
+                      <tr key={item.id} className='hover:bg-actionHover/50'>
+                        <td className='p-2.5 font-medium text-textPrimary'>
+                          <div className='font-bold'>{item.nameSnapshot}</div>
+                        </td>
+                        <td className='p-2.5 text-center'>
+                          <span
+                            className={`text-[9px] uppercase px-1.5 py-0.5 rounded font-bold ${
+                              item.itemType === 'SERVICE'
+                                ? 'bg-emerald-500/15 text-emerald-500'
+                                : 'bg-blue-500/15 text-blue-500'
+                            }`}
+                          >
+                            {item.itemType === 'SERVICE' ? 'Servicio' : 'Producto'}
+                          </span>
+                        </td>
+                        <td className='p-2.5 text-center font-bold text-textPrimary'>
+                          {item.quantity}
+                        </td>
+                        <td className='p-2.5 text-right text-textSecondary'>
+                          Q. {Number(item.unitPriceSnapshot).toFixed(2)}
+                        </td>
+                        <td className='p-2.5 text-right font-black text-textPrimary'>
+                          Q. {Number(item.lineTotal).toFixed(2)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Liquidación de Promociones y Descuentos */}
+            <div className='bg-actionHover/80 rounded-xl p-4 space-y-2 text-xs border border-borderColor'>
               <div className='flex justify-between text-textSecondary'>
-                <span>Subtotal Servicios:</span>
-                <span>Q. {Number(selectedReg.serviceSubtotal).toFixed(2)}</span>
+                <span>Subtotal Servicios Solicitados:</span>
+                <span className='font-semibold text-textPrimary'>
+                  Q. {Number(selectedReg.serviceSubtotal).toFixed(2)}
+                </span>
               </div>
               <div className='flex justify-between text-textSecondary'>
-                <span>Subtotal Productos:</span>
-                <span>Q. {Number(selectedReg.productSubtotal).toFixed(2)}</span>
+                <span>Subtotal Productos Solicitados:</span>
+                <span className='font-semibold text-textPrimary'>
+                  Q. {Number(selectedReg.productSubtotal).toFixed(2)}
+                </span>
               </div>
-              <div className='flex justify-between text-emerald-500 font-bold'>
-                <span>Ahorro Total Promocional:</span>
+              <div className='flex justify-between text-emerald-600 font-semibold'>
+                <span>
+                  Descuento en Servicios ({selectedReg.serviceDiscountPercentage}%):
+                </span>
+                <span>- Q. {Number(selectedReg.serviceDiscountAmount).toFixed(2)}</span>
+              </div>
+              <div className='flex justify-between text-blue-600 font-semibold'>
+                <span>
+                  Descuento en Productos ({selectedReg.productDiscountPercentage}%):
+                </span>
+                <span>- Q. {Number(selectedReg.productDiscountAmount).toFixed(2)}</span>
+              </div>
+              <div className='flex justify-between text-emerald-600 font-black border-t border-borderColor pt-1.5 text-sm'>
+                <span>Ahorro Total Promocional Otorgado:</span>
                 <span>Q. {Number(selectedReg.totalDiscountAmount).toFixed(2)}</span>
               </div>
-              <div className='flex justify-between font-black text-textPrimary pt-1 border-t border-emerald-500/30 text-sm'>
-                <span>Total Estimado:</span>
-                <span>Q. {Number(selectedReg.estimatedTotal).toFixed(2)}</span>
+              <div className='flex justify-between items-center text-sm font-black text-textPrimary border-t-2 border-borderColor pt-2'>
+                <span className='text-sm'>Total Final Estimado a Invertir:</span>
+                <span className='text-lg font-black text-emerald-600'>
+                  Q. {Number(selectedReg.estimatedTotal).toFixed(2)}
+                </span>
               </div>
             </div>
           </DialogContent>
 
-          <DialogActions className='p-4 border-t border-borderColor'>
-            <Button onClick={() => setModalOpen(false)} sx={{ textTransform: 'none' }}>
-              Cerrar
+          <DialogActions className='p-4 border-t border-borderColor bg-actionHover/30 flex justify-between items-center'>
+            <span className='text-[10px] text-textSecondary'>
+              Fecha de Registro: {new Date(selectedReg.createdAt).toLocaleString('es-GT')}
+            </span>
+            <Button
+              variant='contained'
+              onClick={() => setModalOpen(false)}
+              sx={{
+                textTransform: 'none',
+                borderRadius: '8px',
+                backgroundColor: '#2e7d32',
+                '&:hover': { backgroundColor: '#1b5e20' },
+              }}
+            >
+              Cerrar Resumen
             </Button>
           </DialogActions>
         </Dialog>
       )}
+
+      {/* Snackbar / Alerta flotante */}
+      <Snackbar
+        open={Boolean(toastMessage)}
+        autoHideDuration={3500}
+        onClose={() => setToastMessage(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setToastMessage(null)}
+          severity='success'
+          sx={{ width: '100%', borderRadius: '12px' }}
+        >
+          {toastMessage}
+        </Alert>
+      </Snackbar>
     </div>
   )
 }

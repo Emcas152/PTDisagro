@@ -23,6 +23,7 @@ import { EventStatus, RegistrationStatus } from '@prisma/client'
 import * as crypto from 'crypto'
 import { PrismaService } from '../../prisma/prisma.service'
 import { DiscountsService } from '../discounts/discounts.service'
+import { EmailService } from '../email/email.service'
 import {
   CreateRegistrationDto,
   PreviewRegistrationDto,
@@ -35,6 +36,7 @@ export class RegistrationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly discountsService: DiscountsService,
+    private readonly emailService: EmailService,
   ) {}
 
   /**
@@ -321,7 +323,20 @@ export class RegistrationsService {
       })
     })
 
+    // Enviar confirmación al correo electrónico del participante de forma asíncrona
+    if (result) {
+      this.emailService.sendRegistrationConfirmation(result).catch(() => {})
+    }
+
     return result
+  }
+
+  /**
+   * Reenvía el correo de confirmación para un registro existente.
+   */
+  async resendConfirmationEmail(confirmationCode: string) {
+    const registration = await this.getByConfirmationCode(confirmationCode)
+    return this.emailService.sendRegistrationConfirmation(registration)
   }
 
   /**

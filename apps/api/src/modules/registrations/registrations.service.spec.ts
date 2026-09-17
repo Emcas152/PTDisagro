@@ -93,8 +93,12 @@ describe('RegistrationsService', () => {
       }),
     }
 
+    const emailServiceMock: any = {
+      sendRegistrationConfirmation: vi.fn().mockResolvedValue(true),
+    }
+
     discountsService = new DiscountsService()
-    service = new RegistrationsService(prismaMock, discountsService)
+    service = new RegistrationsService(prismaMock, discountsService, emailServiceMock)
   })
 
   describe('preview', () => {

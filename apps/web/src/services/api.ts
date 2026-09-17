@@ -157,6 +157,15 @@ export const api = {
     })
   },
 
+  async resendRegistrationEmail(confirmationCode: string) {
+    return request<{ success: boolean; sent: boolean; message: string }>(
+      `/registrations/${encodeURIComponent(confirmationCode)}/resend-email`,
+      {
+        method: 'POST',
+      },
+    )
+  },
+
   // ==========================================
   // AUTENTICACIÓN
   // ==========================================

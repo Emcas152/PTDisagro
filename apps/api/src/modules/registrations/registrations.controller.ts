@@ -51,6 +51,28 @@ export class RegistrationsController {
   }
 
   /**
+   * Reenvía el correo de confirmación al participante.
+   */
+  @Post(':confirmationCode/resend-email')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Reenviar confirmación por correo electrónico',
+    description:
+      'Envía nuevamente el correo con el voucher y resumen de la cotización al correo del cliente.',
+  })
+  async resendEmail(@Param('confirmationCode') confirmationCode: string) {
+    const sent =
+      await this.registrationsService.resendConfirmationEmail(confirmationCode)
+    return {
+      success: true,
+      sent,
+      message: sent
+        ? 'Correo de confirmación enviado exitosamente'
+        : 'Correo registrado y simulado en el servidor',
+    }
+  }
+
+  /**
    * Confirmación definitiva del registro de asistencia.
    */
   @Post()
