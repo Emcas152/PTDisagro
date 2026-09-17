@@ -173,6 +173,7 @@ El siguiente diagrama ilustra el flujo de cálculo seguro sin confiar en los pre
 ```mermaid
 sequenceDiagram
     autonumber
+    
     actor Cliente as 👤 Participante (Browser)
     participant Web as 💻 Frontend (Next.js)
     participant API as ⚙️ Backend API (NestJS + Fastify)
