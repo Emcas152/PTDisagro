@@ -39,6 +39,7 @@ RUN pnpm --filter @ptdisagro/web build
 # STAGE 3: Runner
 FROM node:20-alpine AS runner
 WORKDIR /app
+RUN npm install -g pnpm@10.30.3
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
